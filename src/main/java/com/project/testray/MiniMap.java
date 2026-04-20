@@ -4,48 +4,57 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-public class MyCanvas {
-    Canvas canvas;
+import java.util.ArrayList;
 
+public class MiniMap {
+    private final double width = 400.0;
+    private final double height = 400.0;
+
+    Canvas canvas;
     GraphicsContext gc;
 
     private final int[][] borders = new int[][]{
-            {50, 50, 50, 200},
+            {50, 50, 50, 100},
             {50, 50, 300, 50},
             {300, 50, 300, 100},
-            {300, 100, 100, 100},
-            {100, 100, 100, 200},
-            {100, 200, 50, 200},
+            {300, 100, 50, 100},
     };
 
-    public MyCanvas(Canvas canvas){
+    public MiniMap(Canvas canvas){
         this.canvas = canvas;
-    }
-    public void initialize(){
         gc = canvas.getGraphicsContext2D();
-        gc.setLineWidth(3.0);
     }
+
     public void drawBorders(){
         for(int[] i : borders){
             gc.strokeLine(i[0],i[1],i[2],i[3]);
         }
     }
 
-    public void drawRay(double mouseX, double mouseY) {
-        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+    public ArrayList<double[]> drawMiniMap(double mouseX, double mouseY) {
+        gc.setLineWidth(3.0);
+        ArrayList<double[]> rays = new ArrayList<>();
+
+        gc.clearRect(0, 0, width + 5, height + 5);
         drawBorders();
 
-        double startX = canvas.getWidth() / 2;
-        double startY = canvas.getHeight() / 2;
+        double startX = width / 2;
+        double startY = height / 2;
 
-        double fovAngle = 60;
-        int rayCount = 40;
+        double fovAngle = 130;
+        int rayCount = 130;
 
-        double centerDirX = mouseX - startX;
-        double centerDirY = mouseY - startY;
+        double visionAngle = (mouseX / 1600.0 - 0.5) * Math.PI;
+        double radius = (mouseY / 900.0) * Math.max(width, height) * 1.5;
+        double relativeX = startX + radius * Math.sin(visionAngle);
+        double relativeY = startY - radius * Math.cos(visionAngle);
+
+
+        double centerDirX = relativeX - startX;
+        double centerDirY = relativeY - startY;
         double centerDist = Math.hypot(centerDirX, centerDirY);
 
-        if (centerDist == 0) return;
+        if (centerDist == 0) return null;
 
         centerDirX /= centerDist;
         centerDirY /= centerDist;
@@ -62,12 +71,24 @@ public class MyCanvas {
             double dirY = Math.sin(angle);
 
             double[] edgePoint = findEdgeIntersection(startX, startY, dirX, dirY,
-                    canvas.getWidth(), canvas.getHeight());
+                    width, height);
 
-            gc.strokeLine(startX, startY, edgePoint[0], edgePoint[1]);
+            double[] collisionPoint = findClosestWallCollision(startX, startY, edgePoint[0], edgePoint[1]);
 
-            drawCollideForRay(startX, startY, edgePoint[0], edgePoint[1]);
+            double rayX = collisionPoint != null ? collisionPoint[0] : edgePoint[0];
+            double rayY = collisionPoint != null ? collisionPoint[1] : edgePoint[1];
+
+            if(i == 0 || i == rayCount - 1) gc.strokeLine(startX,startY,rayX,rayY);
+
+            if(collisionPoint != null){
+                rays.add(new double[]{collisionPoint[0], collisionPoint[1], dirX});
+                gc.setFill(Color.RED);
+                gc.fillOval(collisionPoint[0] - 4, collisionPoint[1] - 4, 8, 8);
+                gc.setFill(Color.BLACK);
+            }
         }
+
+        return rays;
     }
 
     private double[] findEdgeIntersection(double startX, double startY,
@@ -127,8 +148,10 @@ public class MyCanvas {
         return new double[]{resultX, resultY};
     }
 
-    private void drawCollideForRay(double startX, double startY,
+    private double[] findClosestWallCollision(double startX, double startY,
                                    double edgePointX, double edgePointY){
+        double minDist = 1e9;
+        double[] minRay = null;
         for(int[] i : borders){
             //отрезок
             double[] A = new double[]{i[0],i[1]};
@@ -140,25 +163,28 @@ public class MyCanvas {
 
 
             double rNumerator = (B[0] - A[0]) * (C[1] - A[1]) - (C[0] - A[0]) * (B[1] - A[1]);
-            double rDenominator = (D[0] - C[0]) * (B[1] - A[1]) - (B[0] - A[0]) * (D[1] - C[1]);
-
             double sNumerator = (A[0] - C[0]) * (D[1] - C[1]) - (D[0] - C[0]) * (A[1] - C[1]);
-            double sDenominator = (D[0] - C[0]) * (B[1] - A[1]) - (B[0] - A[0]) * (D[1] - C[1]);
 
-            if(sDenominator != 0 && rDenominator != 0){
-                double r = rNumerator / rDenominator;
-                double s = sNumerator / sDenominator;
+            double denominator = (D[0] - C[0]) * (B[1] - A[1]) - (B[0] - A[0]) * (D[1] - C[1]);
+
+            if(denominator != 0){
+                double r = rNumerator / denominator;
+                double s = sNumerator / denominator;
 
                 if(s >= 0 && s <= 1 && r >= 0){
                     double[] P = new double[2];
                     P[0] = s * (B[0] - A[0]) + A[0];
                     P[1] = s * (B[1] - A[1]) + A[1];
 
-                    gc.setFill(Color.RED);
-                    gc.fillOval(P[0] - 4, P[1] - 4, 8, 8);
-                    gc.setFill(Color.BLACK);
+                    double dist = Math.hypot(startX - P[0], startY - P[1]);
+                    if(dist < minDist){
+                        minDist = dist;
+                        minRay = new double[]{P[0], P[1]};
+                    }
                 }
             }
         }
+
+        return minRay;
     }
 }
