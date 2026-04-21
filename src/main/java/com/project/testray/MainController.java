@@ -44,6 +44,7 @@ public class MainController implements Initializable {
                 double stepY = player.getCurrentY();
                 stepY = key.compareTo("W") == 0 ? stepY - 20 : stepY + 20;
                 player.setCurrentY(stepY);
+
                 ArrayList<double[]> rays = workWithMiniMap.drawMiniMap();
                 workWithPlayerView.drawObjects(rays);
                 workWithMiniMap.drawMiniMap();
@@ -52,6 +53,7 @@ public class MainController implements Initializable {
                 double stepX = player.getCurrentX();
                 stepX = key.compareTo("D") == 0 ? stepX + 20 : stepX - 20;
                 player.setCurrentX(stepX);
+
                 ArrayList<double[]> rays1 = workWithMiniMap.drawMiniMap();
                 workWithPlayerView.drawObjects(rays1);
                 workWithMiniMap.drawMiniMap();

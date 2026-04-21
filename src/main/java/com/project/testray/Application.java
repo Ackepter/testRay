@@ -23,7 +23,6 @@ public class Application extends javafx.application.Application {
 
         MainController controller = fxmlLoader.getController();
 
-
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.W && !isWPressed) {
                 controller.keyPressed("W");

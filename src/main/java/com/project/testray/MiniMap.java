@@ -16,6 +16,11 @@ public class MiniMap {
     GraphicsContext gc;
 
     private final int[][] borders = new int[][]{
+            {0, 0, 400, 0},
+            {400, 0, 400, 400},
+            {400, 400, 0, 400},
+            {0, 400, 0, 0},
+
             {50, 50, 50, 100},
             {50, 50, 300, 50},
             {300, 50, 300, 100},
@@ -93,7 +98,8 @@ public class MiniMap {
             if(i == 0 || i == rayCount - 1) gc.strokeLine(currentX,currentY,rayX,rayY);
 
             if(collisionPoint != null){
-                rays.add(new double[]{collisionPoint[0], collisionPoint[1], dirX});
+                double distance = Math.hypot(collisionPoint[0] - currentX, collisionPoint[1] - currentY);
+                rays.add(new double[]{collisionPoint[0], collisionPoint[1], dirX, distance});
                 gc.setFill(Color.RED);
                 gc.fillOval(collisionPoint[0] - 4, collisionPoint[1] - 4, 8, 8);
                 gc.setFill(Color.BLACK);
@@ -152,7 +158,8 @@ public class MiniMap {
             if(i == 0 || i == rayCount - 1) gc.strokeLine(currentX,currentY,rayX,rayY);
 
             if(collisionPoint != null){
-                rays.add(new double[]{collisionPoint[0], collisionPoint[1], dirX});
+                double distance = Math.hypot(collisionPoint[0] - currentX, collisionPoint[1] - currentY);
+                rays.add(new double[]{collisionPoint[0], collisionPoint[1], dirX, distance});
                 gc.setFill(Color.RED);
                 gc.fillOval(collisionPoint[0] - 4, collisionPoint[1] - 4, 8, 8);
                 gc.setFill(Color.BLACK);

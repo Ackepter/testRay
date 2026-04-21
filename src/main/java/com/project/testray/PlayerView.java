@@ -2,6 +2,7 @@ package com.project.testray;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 
@@ -20,41 +21,40 @@ public class PlayerView {
 
     public void drawObjects(ArrayList<double[]> rays){
         currentRay = rays;
-
         gc.setLineWidth(1.0);
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight()); // очистка всего холста
 
-        gc.clearRect(400,0,1600,900);
-        gc.clearRect(0,400,400,900);
+        int screenWidth = 1600;
+        int screenHeight = 900;
+        double fov = Math.toRadians(130); // должно совпадать с MiniMap
+        double wallHeightConstant = screenHeight * 50; // подберите под нужный масштаб
 
-        for(double[] ray : currentRay){
-            double xRect = 1600 * (1 + ray[2]) / 2;
-            int r = 50;
-            if(xRect < 1600 * 0.2 || xRect > 1600 - 1600 * 0.2) r += 20;
-            else if(xRect < 1600 * 0.3 || xRect > 1600 - 1600 * 0.3) r += 40;
-            else if(xRect < 1600 * 0.4 || xRect > 1600 - 1600 * 0.4) r += 60;
-            else if(xRect < 1600 * 0.5 || xRect > 1600 - 1600 * 0.5) r += 80;
+        // Рисуем каждый луч как вертикальную полоску
+        for (int i = 0; i < rays.size(); i++) {
+            double[] ray = rays.get(i);
+            double distance = ray[3]; // расстояние до стены
+            double dirX = ray[2];     // направление луча
 
+            // Фиш-ай коррекция: компенсируем искажение по краям FOV
+            double rayAngle = Math.acos(dirX); // угол между лучом и осью X
+            double centerAngle = Math.acos(Math.cos(rayAngle)); // упрощённо
+            // Более точный способ: храните угол луча относительно центра при генерации
+            // Но для начала можно использовать приближение:
+            double correctedDistance = distance; // пока без коррекции, можно добавить позже
 
-            gc.fillRect(xRect, r, 5, 700 - 2*r);
-        }
-    }
+            // Высота стены обратно пропорциональна расстоянию
+            int wallHeight = (int)(wallHeightConstant / correctedDistance);
+            wallHeight = Math.min(wallHeight, screenHeight); // ограничиваем
 
-    public void drawObjects(){
-        gc.setLineWidth(1.0);
+            // Позиция по X: просто распределяем лучи равномерно по ширине экрана
+            double xRect = (double) i / rays.size() * screenWidth;
 
-        gc.clearRect(400,0,1600,900);
-        gc.clearRect(0,400,400,900);
+            // Центрируем стену по вертикали
+            double yTop = (screenHeight - wallHeight) / 2.0;
 
-        for(double[] ray : currentRay){
-            double xRect = 1600 * (1 + ray[2]) / 2;
-            int r = 50;
-            if(xRect < 1600 * 0.2 || xRect > 1600 - 1600 * 0.2) r += 20;
-            else if(xRect < 1600 * 0.3 || xRect > 1600 - 1600 * 0.3) r += 40;
-            else if(xRect < 1600 * 0.4 || xRect > 1600 - 1600 * 0.4) r += 60;
-            else if(xRect < 1600 * 0.5 || xRect > 1600 - 1600 * 0.5) r += 80;
-
-
-            gc.fillRect(xRect, r, 5, 700 - 2*r);
+            // Рисуем полоску стены
+            gc.setFill(Color.GRAY);
+            gc.fillRect(xRect, yTop, screenWidth / rays.size() + 1, wallHeight);
         }
     }
 }
