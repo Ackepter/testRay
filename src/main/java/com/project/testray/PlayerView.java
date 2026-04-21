@@ -25,12 +25,13 @@ public class PlayerView {
         for(double[] ray : rays){
             double xRect = 1600 * (1 + ray[2]) / 2;
             int r = 50;
-            if(xRect < 1600 * 0.2) r += 20;
-            else if(xRect < 1600 * 0.3) r += 40;
-            else if(xRect < 1600 * 0.4) r += 60;
-            else if(xRect < 1600 * 0.5) r += 80;
+            if(xRect < 1600 * 0.2 || xRect > 1600 - 1600 * 0.2) r += 20;
+            else if(xRect < 1600 * 0.3 || xRect > 1600 - 1600 * 0.3) r += 40;
+            else if(xRect < 1600 * 0.4 || xRect > 1600 - 1600 * 0.4) r += 60;
+            else if(xRect < 1600 * 0.5 || xRect > 1600 - 1600 * 0.5) r += 80;
 
-            gc.fillRect(xRect, r, 5, 900 - r);
+
+            gc.fillRect(xRect, r, 5, 700 - 2*r);
         }
     }
 }

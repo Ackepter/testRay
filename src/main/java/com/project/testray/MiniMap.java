@@ -7,8 +7,8 @@ import javafx.scene.paint.Color;
 import java.util.ArrayList;
 
 public class MiniMap {
-    private final double width = 400.0;
-    private final double height = 400.0;
+    final double width = 400.0;
+    final double height = 400.0;
 
     Canvas canvas;
     GraphicsContext gc;
