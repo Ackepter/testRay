@@ -2,7 +2,6 @@ package com.project.testray;
 
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.input.KeyCode;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -17,12 +16,15 @@ public class MainController implements Initializable {
 
     public Player player;
 
+    final double miniMapWidth = 400.0;
+    final double miniMapHeight = 400.0;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        workWithMiniMap = new MiniMap(mainCanvas);
-        workWithPlayerView = new PlayerView(mainCanvas);
+        player = new Player(miniMapWidth, miniMapHeight);
 
-        player = new Player(workWithMiniMap.width, workWithMiniMap.height);
+        workWithMiniMap = new MiniMap(mainCanvas, miniMapWidth, miniMapHeight, player);
+        workWithPlayerView = new PlayerView(mainCanvas);
 
         mainCanvas.setOnMouseMoved(event -> {
             double xNode   = event.getX();
@@ -40,13 +42,19 @@ public class MainController implements Initializable {
         switch (key) {
             case "W", "S":
                 double stepY = player.getCurrentY();
-                stepY = key.compareTo("W") == 0 ? stepY + 10 : stepY - 10;
+                stepY = key.compareTo("W") == 0 ? stepY - 20 : stepY + 20;
                 player.setCurrentY(stepY);
+                ArrayList<double[]> rays = workWithMiniMap.drawMiniMap();
+                workWithPlayerView.drawObjects(rays);
+                workWithMiniMap.drawMiniMap();
                 break;
             case "A", "D":
                 double stepX = player.getCurrentX();
-                stepX = key.compareTo("D") == 0 ? stepX + 10 : stepX - 10;
+                stepX = key.compareTo("D") == 0 ? stepX + 20 : stepX - 20;
                 player.setCurrentX(stepX);
+                ArrayList<double[]> rays1 = workWithMiniMap.drawMiniMap();
+                workWithPlayerView.drawObjects(rays1);
+                workWithMiniMap.drawMiniMap();
                 break;
             default:
                 break;
