@@ -86,27 +86,26 @@ public class MainController implements Initializable {
         if(DO_DRAW_MAP) workWithMiniMap.drawMap();
     }
 
-    public void keyPressedControl(String key, double percent) {
+    public void keyPressedControl(String key, double percent, double deltaTime) {
         if (key == null || key.isEmpty()) return;
         double playerSpeed = player.isRunning() ? player.getMaxPlayerRunSpeed() : player.getMaxPlayerWalkSpeed();
 
-        double trueSpeedByX = Math.cos(playerAngle) * playerSpeed * percent;
-        double trueSpeedByY = Math.sin(playerAngle) * playerSpeed * percent;
+        double trueSpeedByX = Math.cos(playerAngle) * playerSpeed * percent * deltaTime;
+        double trueSpeedByY = Math.sin(playerAngle) * playerSpeed * percent * deltaTime;
 
         double newX = player.getCurrentX();
         double newY = player.getCurrentY();
 
         switch (key) {
-            case "W":
+            case "W" -> {
                 newX += trueSpeedByX;
                 newY += trueSpeedByY;
-                break;
-            case "S":
+            }
+            case "S" -> {
                 newX -= trueSpeedByX;
                 newY -= trueSpeedByY;
-                break;
-            default:
-                return;
+            }
+            default  -> { return; }
         }
 
         double[] resolved = workWithMiniMap.resolveCollision(newX, newY);
@@ -115,18 +114,14 @@ public class MainController implements Initializable {
         player.setCurrentY(resolved[1]);
     }
 
-    public void keyPressedRotate(String key) {
+    public void keyPressedRotate(String key, double deltaTime) {
         if (key == null || key.isEmpty()) return;
 
+        double rotSpeed = Math.PI / 2 * deltaTime;
+
         switch (key) {
-            case "A":
-                playerAngle -= Math.PI / 200;
-                break;
-            case "D":
-                playerAngle += Math.PI / 200;
-                break;
-            default:
-                break;
+            case "A" -> playerAngle -= rotSpeed;
+            case "D" -> playerAngle += rotSpeed;
         }
     }
 

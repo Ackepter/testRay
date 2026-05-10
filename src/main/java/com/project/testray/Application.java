@@ -32,92 +32,64 @@ public class Application extends javafx.application.Application {
 
 
         controller = fxmlLoader.getController();
-        AnimationTimer gameControlLoop = getAnimationTimerControl(controller);
-        gameControlLoop.start();
 
-        AnimationTimer gameRotateLoop = getAnimationTimerRotate(controller);
-        gameRotateLoop.start();
+        AnimationTimer gameLoop = new AnimationTimer() {
+            private long lastTime = -1;
 
+            @Override
+            public void handle(long now) {
+                if (lastTime < 0) {
+                    lastTime = now;
+                    return;
+                }
+
+                double deltaTime = (now - lastTime) / 1_000_000_000.0;
+                lastTime = now;
+
+                deltaTime = Math.min(deltaTime, 0.1);
+
+                percent = Math.min(percent + acceleration, 1.0);
+
+                if (isWPressed) {
+                    controller.keyPressedControl("W", percent, deltaTime);
+                } else if (isSPressed) {
+                    controller.keyPressedControl("S", percent, deltaTime);
+                }
+
+                if (isAPressed) {
+                    controller.keyPressedRotate("A", deltaTime);
+                } else if (isDPressed) {
+                    controller.keyPressedRotate("D", deltaTime);
+                }
+            }
+        };
+        gameLoop.start();
 
         scene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.W) {
-                isWPressed = true;
-            }
-            else if (event.getCode() == KeyCode.S) {
-                isSPressed = true;
-            }
-
-            if (event.getCode() == KeyCode.A) {
-                isAPressed = true;
-            }
-            else if (event.getCode() == KeyCode.D) {
-                isDPressed = true;
-            }
-
-            if(event.getCode() == KeyCode.SHIFT && !isShiftPressed){
-                controller.keyRunning();
-                isShiftPressed = true;
-            }
-
-            if(event.getCode() == KeyCode.ESCAPE){
-                stage.close();
+            switch (event.getCode()) {
+                case W -> isWPressed = true;
+                case S -> isSPressed = true;
+                case A -> isAPressed = true;
+                case D -> isDPressed = true;
+                case SHIFT -> {
+                    if (!isShiftPressed) {
+                        controller.keyRunning(); isShiftPressed = true;
+                    }
+                }
+                case ESCAPE -> stage.close();
             }
         });
 
         scene.setOnKeyReleased(event -> {
-            if (event.getCode() == KeyCode.W) {
-                isWPressed = false;
-                percent = 0.0;
-            }
-            else if (event.getCode() == KeyCode.S){
-                isSPressed = false;
-                percent = 0.0;
-            }
-
-            if (event.getCode() == KeyCode.A) {
-                isAPressed = false;
-                percent = 0.6;
-            }
-            else if (event.getCode() == KeyCode.D){
-                isDPressed = false;
-                percent = 0.6;
-            }
-
-            if(event.getCode() == KeyCode.SHIFT){
-                controller.keyWalk();
-                isShiftPressed = false;
+            switch (event.getCode()) {
+                case W -> { isWPressed = false; percent = 0.0; }
+                case S -> { isSPressed = false; percent = 0.0; }
+                case A -> { isAPressed = false; percent = 0.6; }
+                case D -> { isDPressed = false; percent = 0.6; }
+                case SHIFT -> { controller.keyWalk(); isShiftPressed = false; }
             }
         });
     }
 
-    private AnimationTimer getAnimationTimerControl(MainController controller) {
-        return new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                percent = Math.min(percent + acceleration, 1.0);
 
-                if (isWPressed) {
-                    controller.keyPressedControl("W", percent);
-                }
-                else if (isSPressed) {
-                    controller.keyPressedControl("S", percent);
-                }
-            }
-        };
-    }
-
-
-    private AnimationTimer getAnimationTimerRotate(MainController controller) {
-        return new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                if (isAPressed) {
-                    controller.keyPressedRotate("A");
-                }
-                else if (isDPressed) {
-                    controller.keyPressedRotate("D");
-                }
-            }
-        };
-    }
 }

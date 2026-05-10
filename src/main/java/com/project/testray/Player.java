@@ -1,12 +1,12 @@
 package com.project.testray;
 
 public class Player {
-    private final double maxPlayerWalkSpeed = 1;
+    private final double maxPlayerWalkSpeed = 100;
     public double getMaxPlayerWalkSpeed(){
         return maxPlayerWalkSpeed;
     }
 
-    private final double maxPlayerRunSpeed = 1.5;
+    private final double maxPlayerRunSpeed = 150;
     public double getMaxPlayerRunSpeed(){
         return maxPlayerRunSpeed;
     }
