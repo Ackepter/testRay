@@ -1,6 +1,28 @@
 package com.project.testray;
 
 public class Player {
+    private final double maxPlayerWalkSpeed = 1;
+    public double getMaxPlayerWalkSpeed(){
+        return maxPlayerWalkSpeed;
+    }
+
+    private final double maxPlayerRunSpeed = 1.5;
+    public double getMaxPlayerRunSpeed(){
+        return maxPlayerRunSpeed;
+    }
+
+
+    private boolean isRunning = false;
+    public boolean isRunning(){
+        return isRunning;
+    }
+    public void walk(){
+        isRunning = false;
+    }
+    public void run(){
+        isRunning = true;
+    }
+
     private final double width;
     private final double height;
 
@@ -10,7 +32,7 @@ public class Player {
     }
 
     private final double startY;
-    public double getstartY(){
+    public double getStartY(){
         return startY;
     }
 
@@ -45,5 +67,9 @@ public class Player {
         currentY = startY;
     }
 
+    public void move(double xStep, double yStep){
+        currentX = currentX + xStep;
+        currentY = currentY + yStep;
+    }
 
 }

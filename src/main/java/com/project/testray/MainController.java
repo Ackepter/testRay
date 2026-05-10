@@ -1,16 +1,17 @@
 package com.project.testray;
 
+import javafx.animation.AnimationTimer;
 import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.robot.Robot;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
-    private final double mouseSensitivity = 0.003;
+    //ОСНОВНЫЕ КОНСТАНТЫ ИГРЫ
+    private final boolean doDrawingMinimap = false;
 
     public Canvas mainCanvas;
 
@@ -43,7 +44,11 @@ public class MainController implements Initializable {
     };
 
     private double playerAngle = 0;
-    private double previousMouseX = 0;
+
+    private long lastUpdateTime = 0;
+    int targetFPS = 60;
+    private final long frameIntervalNs = 1_000_000_000L / targetFPS;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         player = new Player(miniMapWidth, miniMapHeight);
@@ -53,52 +58,71 @@ public class MainController implements Initializable {
 
         mainCanvas.setCursor(Cursor.NONE);
 
-        mainCanvas.setOnMouseMoved(event -> {
-            double deltaX = event.getX() - previousMouseX;
-
-            double relativeDeltaX = event.getX() - (mainCanvas.getWidth() / 2);
-            if (Math.abs(relativeDeltaX) > 1) {
-                playerAngle += relativeDeltaX * mouseSensitivity;
-                try {
-                    Robot robot = new Robot();
-                    robot.mouseMove((int) (event.getScreenX() - relativeDeltaX), (int) event.getScreenY());
-                } catch (Exception _) {}
-            }
-
-            playerAngle += deltaX * mouseSensitivity;
-            previousMouseX = event.getX();
-
-            motionByMouse(playerAngle);
-            System.out.println(playerAngle);
-        });
+        startGameLoop();
     }
-    public void motionByMouse(double playerAngle){
+
+    private void startGameLoop() {
+        AnimationTimer gameLoop = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                if (now - lastUpdateTime >= frameIntervalNs) {
+                    update();
+                    lastUpdateTime = now;
+                }
+            }
+        };
+        gameLoop.start();
+    }
+
+    private void update() {
+        drawAll();
+    }
+
+    private void drawAll(){
         ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle);
         workWithPlayerView.drawObjects(rays, playerAngle);
+
+        if(doDrawingMinimap) workWithMiniMap.drawMap();
     }
 
-    public void keyPressed(String key) {
+    public void keyPressedControl(String key, double percent) {
         if (key == null || key.isEmpty()) return;
+        double playerSpeed = player.isRunning() ? player.getMaxPlayerRunSpeed() : player.getMaxPlayerWalkSpeed();
 
+        double trueSpeedByX = Math.cos(playerAngle) * playerSpeed * percent;
+        double trueSpeedByY = Math.sin(playerAngle) * playerSpeed * percent;
         switch (key) {
-            case "W", "S":
-                double stepY = player.getCurrentY();
-                stepY = key.compareTo("W") == 0 ? stepY - 20 : stepY + 20;
-                player.setCurrentY(stepY);
-
-                ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle);
-                workWithPlayerView.drawObjects(rays, playerAngle);
+            case "W":
+                player.move(trueSpeedByX,trueSpeedByY);
                 break;
-            case "A", "D":
-                double stepX = player.getCurrentX();
-                stepX = key.compareTo("D") == 0 ? stepX + 20 : stepX - 20;
-                player.setCurrentX(stepX);
-
-                ArrayList<double[]> rays1 = workWithMiniMap.drawMiniMap(playerAngle);
-                workWithPlayerView.drawObjects(rays1, playerAngle);
+            case "S":
+                player.move(-trueSpeedByX,-trueSpeedByY);
                 break;
             default:
                 break;
         }
+    }
+
+    public void keyPressedRotate(String key) {
+        if (key == null || key.isEmpty()) return;
+
+        switch (key) {
+            case "A":
+                playerAngle -= Math.PI / 200;
+                break;
+            case "D":
+                playerAngle += Math.PI / 200;
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void keyRunning(){
+        player.run();
+    }
+
+    public void keyWalk(){
+        player.walk();
     }
 }

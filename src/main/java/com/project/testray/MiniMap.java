@@ -17,6 +17,9 @@ public class MiniMap {
 
     private final int[][] map;
 
+    private ArrayList<double[]> sections = new ArrayList<>();
+    private ArrayList<double[]> dots = new ArrayList<>();
+
     public MiniMap(Canvas canvas, double width, double height, Player player, int[][] map){
         this.map = map;
 
@@ -29,18 +32,28 @@ public class MiniMap {
         gc = canvas.getGraphicsContext2D();
     }
 
-    public void drawBorders(){
+    public void drawMap(){
+        gc.clearRect(0, 0, width + 5, height + 5);
+        gc.setLineWidth(3.0);
         for(int[] i : map){
             gc.strokeLine(i[0],i[1],i[2],i[3]);
         }
+
+        for(double[] section : sections){
+            gc.strokeLine(section[0], section[1], section[2], section[3]);
+        }
+        sections.clear();
+
+        gc.setFill(Color.RED);
+        for(double[] dot : dots){
+            gc.fillOval(dot[0], dot[1], dot[2], dot[3]);
+        }
+        gc.setFill(Color.BLACK);
+        dots.clear();
     }
 
     public ArrayList<double[]> drawMiniMap(double playerAngle) {
-        gc.setLineWidth(3.0);
         ArrayList<double[]> rays = new ArrayList<>();
-
-        gc.clearRect(0, 0, width + 5, height + 5);
-        drawBorders();
 
         double currentX = player.getCurrentX();
         double currentY = player.getCurrentY();
@@ -68,14 +81,12 @@ public class MiniMap {
             double rayX = collisionPoint != null ? collisionPoint[0] : edgePoint[0];
             double rayY = collisionPoint != null ? collisionPoint[1] : edgePoint[1];
 
-            gc.strokeLine(currentX,currentY,rayX,rayY);
+            sections.add(new double[]{currentX,currentY,rayX,rayY});
 
             if(collisionPoint != null){
                 double distance = Math.hypot(collisionPoint[0] - currentX, collisionPoint[1] - currentY);
                 rays.add(new double[]{distance, angle});
-                gc.setFill(Color.RED);
-                gc.fillOval(collisionPoint[0] - 4, collisionPoint[1] - 4, 8, 8);
-                gc.setFill(Color.BLACK);
+                dots.add(new double[]{collisionPoint[0] - 4, collisionPoint[1] - 4, 8, 8});
             }
         }
 
