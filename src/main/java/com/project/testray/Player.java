@@ -4,12 +4,12 @@ public class Player {
     private final double width;
     private final double height;
 
-    private double startX;
+    private final double startX;
     public double getStartX(){
         return startX;
     }
 
-    private double startY;
+    private final double startY;
     public double getstartY(){
         return startY;
     }
@@ -38,8 +38,8 @@ public class Player {
         this.width = width;
         this.height = height;
 
-        startY = height / 2;
-        startX = width  / 2;
+        startY = 300;
+        startX = 100;
 
         currentX = startX;
         currentY = startY;

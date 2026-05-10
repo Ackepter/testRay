@@ -40,6 +40,9 @@ public class Application extends javafx.application.Application {
                 controller.keyPressed("D");
                 isDPressed = true;
             }
+            else if(event.getCode() == KeyCode.ESCAPE){
+                stage.hide();
+            }
         });
 
         scene.setOnKeyReleased(event -> {

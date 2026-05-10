@@ -15,19 +15,11 @@ public class MiniMap {
     Canvas canvas;
     GraphicsContext gc;
 
-    private final int[][] borders = new int[][]{
-            {0, 0, 400, 0},
-            {400, 0, 400, 400},
-            {400, 400, 0, 400},
-            {0, 400, 0, 0},
+    private final int[][] map;
 
-            {50, 50, 50, 100},
-            {50, 50, 300, 50},
-            {300, 50, 300, 100},
-            {300, 100, 50, 100},
-    };
+    public MiniMap(Canvas canvas, double width, double height, Player player, int[][] map){
+        this.map = map;
 
-    public MiniMap(Canvas canvas, double width, double height, Player player){
         this.player = player;
 
         this.width = width;
@@ -38,17 +30,12 @@ public class MiniMap {
     }
 
     public void drawBorders(){
-        for(int[] i : borders){
+        for(int[] i : map){
             gc.strokeLine(i[0],i[1],i[2],i[3]);
         }
     }
 
-    double currentMouseX;
-    double currentMouseY;
-    public ArrayList<double[]> drawMiniMap(double mouseX, double mouseY) {
-        currentMouseX = mouseX;
-        currentMouseY = mouseY;
-
+    public ArrayList<double[]> drawMiniMap(double playerAngle) {
         gc.setLineWidth(3.0);
         ArrayList<double[]> rays = new ArrayList<>();
 
@@ -58,31 +45,16 @@ public class MiniMap {
         double currentX = player.getCurrentX();
         double currentY = player.getCurrentY();
 
-        double fovAngle = 130;
-        int rayCount = 130;
+        double fovAngleDeg = 130;
+        int rayCount = (int)(fovAngleDeg * 5);
 
-        double visionAngle = (currentMouseX / 1600.0 - 0.5) * Math.PI;
-        double radius = (currentMouseY / 900.0) * Math.max(width, height) * 1.5;
-        double relativeX = currentX + radius * Math.sin(visionAngle);
-        double relativeY = currentY - radius * Math.cos(visionAngle);
-
-
-        double centerDirX = relativeX - currentX;
-        double centerDirY = relativeY - currentY;
-        double centerDist = Math.hypot(centerDirX, centerDirY);
-
-        if (centerDist == 0) return null;
-
-        centerDirX /= centerDist;
-        centerDirY /= centerDist;
-
-        double baseAngle = Math.atan2(centerDirY, centerDirX);
-        double halfFovRad = Math.toRadians(fovAngle / 2.0);
+        double fovAngleRad = Math.toRadians(fovAngleDeg);
+        double halfFovRad = fovAngleRad / 2.0;
 
         for (int i = 0; i < rayCount; i++) {
-
             double t = (double) i / (rayCount - 1);
-            double angle = baseAngle - halfFovRad + t * fovAngle * Math.PI / 180.0;
+
+            double angle = playerAngle - halfFovRad + t * fovAngleRad;
 
             double dirX = Math.cos(angle);
             double dirY = Math.sin(angle);
@@ -95,67 +67,7 @@ public class MiniMap {
             double rayX = collisionPoint != null ? collisionPoint[0] : edgePoint[0];
             double rayY = collisionPoint != null ? collisionPoint[1] : edgePoint[1];
 
-            if(i == 0 || i == rayCount - 1) gc.strokeLine(currentX,currentY,rayX,rayY);
-
-            if(collisionPoint != null){
-                double distance = Math.hypot(collisionPoint[0] - currentX, collisionPoint[1] - currentY);
-                rays.add(new double[]{collisionPoint[0], collisionPoint[1], dirX, distance});
-                gc.setFill(Color.RED);
-                gc.fillOval(collisionPoint[0] - 4, collisionPoint[1] - 4, 8, 8);
-                gc.setFill(Color.BLACK);
-            }
-        }
-
-        return rays;
-    }
-    public ArrayList<double[]> drawMiniMap() {
-        gc.setLineWidth(3.0);
-        ArrayList<double[]> rays = new ArrayList<>();
-
-        gc.clearRect(0, 0, width + 5, height + 5);
-        drawBorders();
-
-        double currentX = player.getCurrentX();
-        double currentY = player.getCurrentY();
-
-        double fovAngle = 130;
-        int rayCount = 130;
-
-        double visionAngle = (currentMouseX / 1600.0 - 0.5) * Math.PI;
-        double radius = (currentMouseY / 900.0) * Math.max(width, height) * 1.5;
-        double relativeX = currentX + radius * Math.sin(visionAngle);
-        double relativeY = currentY - radius * Math.cos(visionAngle);
-
-
-        double centerDirX = relativeX - currentX;
-        double centerDirY = relativeY - currentY;
-        double centerDist = Math.hypot(centerDirX, centerDirY);
-
-        if (centerDist == 0) return null;
-
-        centerDirX /= centerDist;
-        centerDirY /= centerDist;
-
-        double baseAngle = Math.atan2(centerDirY, centerDirX);
-        double halfFovRad = Math.toRadians(fovAngle / 2.0);
-
-        for (int i = 0; i < rayCount; i++) {
-
-            double t = (double) i / (rayCount - 1);
-            double angle = baseAngle - halfFovRad + t * fovAngle * Math.PI / 180.0;
-
-            double dirX = Math.cos(angle);
-            double dirY = Math.sin(angle);
-
-            double[] edgePoint = findEdgeIntersection(currentX, currentY, dirX, dirY,
-                    width, height);
-
-            double[] collisionPoint = findClosestWallCollision(currentX, currentY, edgePoint[0], edgePoint[1]);
-
-            double rayX = collisionPoint != null ? collisionPoint[0] : edgePoint[0];
-            double rayY = collisionPoint != null ? collisionPoint[1] : edgePoint[1];
-
-            if(i == 0 || i == rayCount - 1) gc.strokeLine(currentX,currentY,rayX,rayY);
+            gc.strokeLine(currentX,currentY,rayX,rayY);
 
             if(collisionPoint != null){
                 double distance = Math.hypot(collisionPoint[0] - currentX, collisionPoint[1] - currentY);
@@ -230,7 +142,7 @@ public class MiniMap {
                                    double edgePointX, double edgePointY){
         double minDist = 1e9;
         double[] minRay = null;
-        for(int[] i : borders){
+        for(int[] i : map){
             //отрезок
             double[] A = new double[]{i[0],i[1]};
             double[] B = new double[]{i[2],i[3]};

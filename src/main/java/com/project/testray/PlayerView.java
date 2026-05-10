@@ -26,21 +26,12 @@ public class PlayerView {
 
         int screenWidth = 1600;
         int screenHeight = 900;
-        double fov = Math.toRadians(130); // должно совпадать с MiniMap
-        double wallHeightConstant = screenHeight * 50; // подберите под нужный масштаб
+        double wallHeightConstant = screenHeight * 45; // подберите под нужный масштаб
 
         // Рисуем каждый луч как вертикальную полоску
         for (int i = 0; i < rays.size(); i++) {
             double[] ray = rays.get(i);
-            double distance = ray[3]; // расстояние до стены
-            double dirX = ray[2];     // направление луча
-
-            // Фиш-ай коррекция: компенсируем искажение по краям FOV
-            double rayAngle = Math.acos(dirX); // угол между лучом и осью X
-            double centerAngle = Math.acos(Math.cos(rayAngle)); // упрощённо
-            // Более точный способ: храните угол луча относительно центра при генерации
-            // Но для начала можно использовать приближение:
-            double correctedDistance = distance; // пока без коррекции, можно добавить позже
+            double correctedDistance = ray[3]; // пока без коррекции, можно добавить позже
 
             // Высота стены обратно пропорциональна расстоянию
             int wallHeight = (int)(wallHeightConstant / correctedDistance);
@@ -54,7 +45,7 @@ public class PlayerView {
 
             // Рисуем полоску стены
             gc.setFill(Color.GRAY);
-            gc.fillRect(xRect, yTop, screenWidth / rays.size() + 1, wallHeight);
+            gc.fillRect(xRect, yTop, (double) screenWidth / rays.size() + 1, wallHeight);
         }
     }
 }
