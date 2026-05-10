@@ -62,9 +62,7 @@ public class MainController implements Initializable {
                 try {
                     Robot robot = new Robot();
                     robot.mouseMove((int) (event.getScreenX() - relativeDeltaX), (int) event.getScreenY());
-                } catch (Exception _) {
-
-                }
+                } catch (Exception _) {}
             }
 
             playerAngle += deltaX * mouseSensitivity;
@@ -77,7 +75,7 @@ public class MainController implements Initializable {
     public void motionByMouse(double playerAngle){
 
         ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle);
-        workWithPlayerView.drawObjects(rays);
+        workWithPlayerView.drawObjects(rays, playerAngle);
         workWithMiniMap.drawMiniMap(playerAngle);
     }
 
@@ -91,7 +89,7 @@ public class MainController implements Initializable {
                 player.setCurrentY(stepY);
 
                 ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle);
-                workWithPlayerView.drawObjects(rays);
+                workWithPlayerView.drawObjects(rays, playerAngle);
                 workWithMiniMap.drawMiniMap(playerAngle);
                 break;
             case "A", "D":
@@ -100,7 +98,7 @@ public class MainController implements Initializable {
                 player.setCurrentX(stepX);
 
                 ArrayList<double[]> rays1 = workWithMiniMap.drawMiniMap(playerAngle);
-                workWithPlayerView.drawObjects(rays1);
+                workWithPlayerView.drawObjects(rays1, playerAngle);
                 workWithMiniMap.drawMiniMap(playerAngle);
                 break;
             default:

@@ -19,33 +19,41 @@ public class PlayerView {
 
     }
 
-    public void drawObjects(ArrayList<double[]> rays){
+    public void drawObjects(ArrayList<double[]> rays, double playerAngle) {
         currentRay = rays;
         gc.setLineWidth(1.0);
-        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight()); // очистка всего холста
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
         int screenWidth = 1600;
         int screenHeight = 900;
-        double wallHeightConstant = screenHeight * 45; // подберите под нужный масштаб
 
-        // Рисуем каждый луч как вертикальную полоску
+        double fovAngleDeg = 90;
+        double fovAngleRad = Math.toRadians(fovAngleDeg);
+        double halfFovRad = fovAngleRad / 2.0;
+
+        double wallHeightConstant = screenHeight * 45;
+
+        double stripWidth = (double) screenWidth / rays.size() + 1.0;
+
         for (int i = 0; i < rays.size(); i++) {
             double[] ray = rays.get(i);
-            double correctedDistance = ray[3]; // пока без коррекции, можно добавить позже
+            double rawDistance = ray[0];
+            double rayAngle = ray[1];
 
-            // Высота стены обратно пропорциональна расстоянию
-            int wallHeight = (int)(wallHeightConstant / correctedDistance);
-            wallHeight = Math.min(wallHeight, screenHeight); // ограничиваем
+            double angleDiff = rayAngle - playerAngle;
+            while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+            while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
 
-            // Позиция по X: просто распределяем лучи равномерно по ширине экрана
+            double correctedDistance = rawDistance * Math.cos(angleDiff);
+            if (correctedDistance < 1.0) correctedDistance = 1.0;
+
+            int wallHeight = (int) (wallHeightConstant / correctedDistance);
+            if (wallHeight > screenHeight * 2) wallHeight = screenHeight * 2;
+
             double xRect = (double) i / rays.size() * screenWidth;
-
-            // Центрируем стену по вертикали
             double yTop = (screenHeight - wallHeight) / 2.0;
-
-            // Рисуем полоску стены
             gc.setFill(Color.GRAY);
-            gc.fillRect(xRect, yTop, (double) screenWidth / rays.size() + 1, wallHeight);
+            gc.fillRect(xRect, yTop, stripWidth, wallHeight);
         }
     }
 }

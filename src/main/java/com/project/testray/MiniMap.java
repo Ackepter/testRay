@@ -45,7 +45,7 @@ public class MiniMap {
         double currentX = player.getCurrentX();
         double currentY = player.getCurrentY();
 
-        double fovAngleDeg = 130;
+        double fovAngleDeg = 90;
         int rayCount = (int)(fovAngleDeg * 5);
 
         double fovAngleRad = Math.toRadians(fovAngleDeg);
@@ -71,7 +71,7 @@ public class MiniMap {
 
             if(collisionPoint != null){
                 double distance = Math.hypot(collisionPoint[0] - currentX, collisionPoint[1] - currentY);
-                rays.add(new double[]{collisionPoint[0], collisionPoint[1], dirX, distance});
+                rays.add(new double[]{distance, angle});
                 gc.setFill(Color.RED);
                 gc.fillOval(collisionPoint[0] - 4, collisionPoint[1] - 4, 8, 8);
                 gc.setFill(Color.BLACK);
