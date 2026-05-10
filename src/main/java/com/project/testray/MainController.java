@@ -73,10 +73,8 @@ public class MainController implements Initializable {
         });
     }
     public void motionByMouse(double playerAngle){
-
         ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle);
         workWithPlayerView.drawObjects(rays, playerAngle);
-        workWithMiniMap.drawMiniMap(playerAngle);
     }
 
     public void keyPressed(String key) {
@@ -90,7 +88,6 @@ public class MainController implements Initializable {
 
                 ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle);
                 workWithPlayerView.drawObjects(rays, playerAngle);
-                workWithMiniMap.drawMiniMap(playerAngle);
                 break;
             case "A", "D":
                 double stepX = player.getCurrentX();
@@ -99,7 +96,6 @@ public class MainController implements Initializable {
 
                 ArrayList<double[]> rays1 = workWithMiniMap.drawMiniMap(playerAngle);
                 workWithPlayerView.drawObjects(rays1, playerAngle);
-                workWithMiniMap.drawMiniMap(playerAngle);
                 break;
             default:
                 break;

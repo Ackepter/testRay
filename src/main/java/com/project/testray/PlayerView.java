@@ -27,10 +27,6 @@ public class PlayerView {
         int screenWidth = 1600;
         int screenHeight = 900;
 
-        double fovAngleDeg = 90;
-        double fovAngleRad = Math.toRadians(fovAngleDeg);
-        double halfFovRad = fovAngleRad / 2.0;
-
         double wallHeightConstant = screenHeight * 45;
 
         double stripWidth = (double) screenWidth / rays.size() + 1.0;

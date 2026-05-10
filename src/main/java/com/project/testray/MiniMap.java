@@ -54,7 +54,8 @@ public class MiniMap {
         for (int i = 0; i < rayCount; i++) {
             double t = (double) i / (rayCount - 1);
 
-            double angle = playerAngle - halfFovRad + t * fovAngleRad;
+            double screenOffset = (t * 2.0 - 1.0) * Math.tan(halfFovRad);
+            double angle = playerAngle + Math.atan(screenOffset);
 
             double dirX = Math.cos(angle);
             double dirY = Math.sin(angle);
@@ -139,7 +140,7 @@ public class MiniMap {
     }
 
     private double[] findClosestWallCollision(double startX, double startY,
-                                   double edgePointX, double edgePointY){
+                                              double edgePointX, double edgePointY){
         double minDist = 1e9;
         double[] minRay = null;
         for(int[] i : map){
