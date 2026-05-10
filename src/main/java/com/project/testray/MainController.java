@@ -11,7 +11,8 @@ import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
     //ОСНОВНЫЕ КОНСТАНТЫ ИГРЫ
-    private final boolean doDrawingMinimap = false;
+    private static final boolean DO_DRAW_MAP = false;
+    public static final double PLAYER_RADIUS = 8.0;
 
     public Canvas mainCanvas;
 
@@ -82,7 +83,7 @@ public class MainController implements Initializable {
         ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle);
         workWithPlayerView.drawObjects(rays, playerAngle);
 
-        if(doDrawingMinimap) workWithMiniMap.drawMap();
+        if(DO_DRAW_MAP) workWithMiniMap.drawMap();
     }
 
     public void keyPressedControl(String key, double percent) {
@@ -91,16 +92,27 @@ public class MainController implements Initializable {
 
         double trueSpeedByX = Math.cos(playerAngle) * playerSpeed * percent;
         double trueSpeedByY = Math.sin(playerAngle) * playerSpeed * percent;
+
+        double newX = player.getCurrentX();
+        double newY = player.getCurrentY();
+
         switch (key) {
             case "W":
-                player.move(trueSpeedByX,trueSpeedByY);
+                newX += trueSpeedByX;
+                newY += trueSpeedByY;
                 break;
             case "S":
-                player.move(-trueSpeedByX,-trueSpeedByY);
+                newX -= trueSpeedByX;
+                newY -= trueSpeedByY;
                 break;
             default:
-                break;
+                return;
         }
+
+        double[] resolved = workWithMiniMap.resolveCollision(newX, newY);
+
+        player.setCurrentX(resolved[0]);
+        player.setCurrentY(resolved[1]);
     }
 
     public void keyPressedRotate(String key) {

@@ -6,6 +6,8 @@ import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 
+import static com.project.testray.MainController.PLAYER_RADIUS;
+
 public class MiniMap {
     Player player;
 
@@ -188,5 +190,33 @@ public class MiniMap {
         }
 
         return minRay;
+    }
+
+    private double[] closestPointOnSegment(double ax, double ay, double bx, double by,
+                                           double px, double py) {
+        double abx = bx - ax, aby = by - ay;
+        double len2 = abx * abx + aby * aby;
+        if (len2 == 0) return new double[]{ax, ay};
+        double t = ((px - ax) * abx + (py - ay) * aby) / len2;
+        t = Math.max(0, Math.min(1, t));
+        return new double[]{ax + t * abx, ay + t * aby};
+    }
+
+    public double[] resolveCollision(double newX, double newY) {
+        for (int[] wall : map) {
+            double[] closest = closestPointOnSegment(
+                    wall[0], wall[1], wall[2], wall[3], newX, newY
+            );
+            double dx = newX - closest[0];
+            double dy = newY - closest[1];
+            double dist = Math.hypot(dx, dy);
+
+            if (dist < PLAYER_RADIUS && dist > 0) {
+                double overlap = PLAYER_RADIUS - dist;
+                newX += (dx / dist) * overlap;
+                newY += (dy / dist) * overlap;
+            }
+        }
+        return new double[]{newX, newY};
     }
 }

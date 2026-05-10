@@ -66,10 +66,4 @@ public class Player {
         currentX = startX;
         currentY = startY;
     }
-
-    public void move(double xStep, double yStep){
-        currentX = currentX + xStep;
-        currentY = currentY + yStep;
-    }
-
 }

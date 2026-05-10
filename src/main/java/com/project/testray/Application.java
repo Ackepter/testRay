@@ -16,6 +16,8 @@ public class Application extends javafx.application.Application {
     private boolean isAPressed = false;
     private boolean isDPressed = false;
 
+    private boolean isShiftPressed = false;
+
     private double percent = 0.0;
     private final double acceleration = 0.015;
 
@@ -52,8 +54,9 @@ public class Application extends javafx.application.Application {
                 isDPressed = true;
             }
 
-            if(event.getCode() == KeyCode.SHIFT){
+            if(event.getCode() == KeyCode.SHIFT && !isShiftPressed){
                 controller.keyRunning();
+                isShiftPressed = true;
             }
 
             if(event.getCode() == KeyCode.ESCAPE){
@@ -82,6 +85,7 @@ public class Application extends javafx.application.Application {
 
             if(event.getCode() == KeyCode.SHIFT){
                 controller.keyWalk();
+                isShiftPressed = false;
             }
         });
     }
