@@ -19,8 +19,8 @@ public class MiniMap {
 
     private final int[][] map;
 
-    private ArrayList<double[]> sections = new ArrayList<>();
-    private ArrayList<double[]> dots = new ArrayList<>();
+    private final ArrayList<double[]> sections = new ArrayList<>();
+    private final ArrayList<double[]> dots = new ArrayList<>();
 
     public MiniMap(Canvas canvas, double width, double height, Player player, int[][] map){
         this.map = map;
@@ -87,7 +87,20 @@ public class MiniMap {
 
             if(collisionPoint != null){
                 double distance = Math.hypot(collisionPoint[0] - currentX, collisionPoint[1] - currentY);
-                rays.add(new double[]{distance, angle});
+
+                int wallIdx = (int) collisionPoint[2];
+                int[] wall = map[wallIdx];
+                double wdx = wall[2] - wall[0];
+                double wdy = wall[3] - wall[1];
+                int textureIndex = map[wallIdx][4];
+
+                double hitCord = Math.abs(wdx) > Math.abs(wdy)
+                        ? collisionPoint[0]
+                        : collisionPoint[1];
+
+                double texU = (((hitCord % 64) + 64) % 64) / 64.0;
+
+                rays.add(new double[]{distance, angle, texU, wallIdx, textureIndex});
                 dots.add(new double[]{collisionPoint[0] - 4, collisionPoint[1] - 4, 8, 8});
             }
         }
@@ -156,7 +169,8 @@ public class MiniMap {
                                               double edgePointX, double edgePointY){
         double minDist = 1e9;
         double[] minRay = null;
-        for(int[] i : map){
+        for(int idx = 0; idx < map.length; idx++){
+            int[] i = map[idx];
             //отрезок
             double[] A = new double[]{i[0],i[1]};
             double[] B = new double[]{i[2],i[3]};
@@ -183,7 +197,7 @@ public class MiniMap {
                     double dist = Math.hypot(startX - P[0], startY - P[1]);
                     if(dist < minDist){
                         minDist = dist;
-                        minRay = new double[]{P[0], P[1]};
+                        minRay = new double[]{P[0], P[1], idx};
                     }
                 }
             }

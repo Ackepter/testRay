@@ -3,7 +3,7 @@ package com.project.testray;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyCode;
+
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -77,6 +77,7 @@ public class Application extends javafx.application.Application {
                     }
                 }
                 case ESCAPE -> stage.close();
+                case M -> controller.switchMap();
             }
         });
 

@@ -60,8 +60,8 @@ public class Player {
         this.width = width;
         this.height = height;
 
-        startY = 300;
-        startX = 100;
+        startY = 75;
+        startX = 75;
 
         currentX = startX;
         currentY = startY;
