@@ -82,20 +82,19 @@ public class PlayerView {
         return t;
     }
 
-    private int rgb(int r, int g, int b) {
-        return 0xFF000000
-                | (Math.max(0, Math.min(255, r)) << 16)
-                | (Math.max(0, Math.min(255, g)) << 8)
-                |  Math.max(0, Math.min(255, b));
-    }
-
     private int darken(int c, double f) {
-        return rgb((int)(((c>>16)&0xFF)*f),
-                (int)(((c>> 8)&0xFF)*f),
-                (int)(( c     &0xFF)*f));
+        int r = (int)(((c >> 16) & 0xFF) * f);
+        int g = (int)(((c >>  8) & 0xFF) * f);
+        int b = (int)(( c        & 0xFF) * f);
+        return 0xFF000000 | (r << 16) | (g << 8) | b;
     }
 
     private final int[] rowBuf = new int[SW];
+    private final int[] columnBuf = new int[SH * 2];
+    private final int[] stripBuf = new int[SH];
+    private final int[] ceilBuf = new int[SW];
+    private static final javafx.scene.image.PixelFormat<java.nio.IntBuffer> FMT =
+            javafx.scene.image.PixelFormat.getIntArgbInstance();
 
     public void drawObjects(ArrayList<double[]> rays,
                             double playerAngle, double playerX, double playerY) {
@@ -118,22 +117,13 @@ public class PlayerView {
             for (int x = 0; x < SW; x++) {
                 int tx = (int) Math.floor(fx) & (TEX - 1);
                 int ty = (int) Math.floor(fy) & (TEX - 1);
-                rowBuf[x] = darken(floorTex[ty][tx], shade);
-
+                rowBuf[x]    = darken(floorTex[ty][tx], shade);
+                ceilBuf[x]   = darken(ceilTex[ty][tx],  shade * 0.55); // ← одновременно
                 fx += stepX;
                 fy += stepY;
             }
-            pw.setPixels(0, y, SW, 1, javafx.scene.image.PixelFormat.getIntArgbInstance(), rowBuf, 0, SW);
-
-            fx = playerX + rowDist * (dirX - planeX);
-            fy = playerY + rowDist * (dirY - planeY);
-            for (int x = 0; x < SW; x++) {
-                int tx = (int) Math.floor(fx) & (TEX - 1);
-                int ty = (int) Math.floor(fy) & (TEX - 1);
-                rowBuf[x] = darken(ceilTex[ty][tx], shade * 0.55);
-                fx += stepX; fy += stepY;
-            }
-            pw.setPixels(0, SH-y-1, SW, 1, javafx.scene.image.PixelFormat.getIntArgbInstance(), rowBuf, 0, SW);
+            pw.setPixels(0, y,       SW, 1, FMT, rowBuf,  0, SW);
+            pw.setPixels(0, SH-y-1, SW, 1, FMT, ceilBuf,  0, SW);
         }
 
         int mid = darken(ceilTex[0][0], 0.55);
@@ -165,14 +155,24 @@ public class PlayerView {
                 int     texX = (int)(texU * TEX) & (TEX - 1);
                 double  shade = Math.max(0.15, Math.min(1.0, 250.0 / dist));
 
-                int[] column = new int[wallH];
+                int[] column = columnBuf;
                 for (int row = 0; row < wallH; row++) {
                     int texY = row * TEX / wallH;
                     column[row] = darken(tex[texY][texX], shade);
                 }
-                for (int sx = xStart; sx < xEnd; sx++)
-                    for (int sy = Math.max(0,yTop), r=0; sy < Math.min(SH,yTop+wallH); sy++,r++)
-                        pw.setArgb(sx, sy, column[r]);
+
+                int clampTop = Math.max(0, yTop);
+                int clampBot = Math.min(SH, yTop + wallH);
+                int drawH = clampBot - clampTop;
+
+                for (int sy = clampTop; sy < clampBot; sy++) {
+                    int r = sy - yTop;
+                    stripBuf[sy] = column[r];
+                }
+
+                for (int sx = xStart; sx < xEnd; sx++) {
+                    pw.setPixels(sx, clampTop, 1, drawH, FMT, stripBuf, clampTop, 1);
+                }
             }
         }
 

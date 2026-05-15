@@ -63,7 +63,7 @@ public class MiniMap {
         double currentY = player.getCurrentY();
 
         double fovAngleDeg = 90;
-        int rayCount = (int)(fovAngleDeg * 5);
+        int rayCount = (int)(fovAngleDeg * 3);
 
         double fovAngleRad = Math.toRadians(fovAngleDeg);
         double halfFovRad = fovAngleRad / 2.0;
