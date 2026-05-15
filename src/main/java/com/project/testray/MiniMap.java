@@ -54,8 +54,10 @@ public class MiniMap {
         dots.clear();
     }
 
+    ArrayList<double[]> rays = new ArrayList<>();
+
     public ArrayList<double[]> drawMiniMap(double playerAngle) {
-        ArrayList<double[]> rays = new ArrayList<>();
+        rays.clear();
 
         double currentX = player.getCurrentX();
         double currentY = player.getCurrentY();

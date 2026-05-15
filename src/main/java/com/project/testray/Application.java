@@ -61,6 +61,8 @@ public class Application extends javafx.application.Application {
                 } else if (isDPressed) {
                     controller.keyPressedRotate("D", deltaTime);
                 }
+
+                controller.drawAll();
             }
         };
         gameLoop.start();

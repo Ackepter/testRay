@@ -95,6 +95,8 @@ public class PlayerView {
                 (int)(( c     &0xFF)*f));
     }
 
+    private final int[] rowBuf = new int[SW];
+
     public void drawObjects(ArrayList<double[]> rays,
                             double playerAngle, double playerX, double playerY) {
         currentRay = rays;
@@ -105,7 +107,6 @@ public class PlayerView {
         double planeY =  Math.cos(playerAngle);
 
         for (int y = SH/2 + 1; y < SH; y++) {
-
             double rowDist = (SH * 45.0) / (2.0 * (y - SH / 2.0));
             double shade   = Math.max(0.25, Math.min(1.0, 120.0 / rowDist));
 
@@ -117,13 +118,22 @@ public class PlayerView {
             for (int x = 0; x < SW; x++) {
                 int tx = (int) Math.floor(fx) & (TEX - 1);
                 int ty = (int) Math.floor(fy) & (TEX - 1);
-
-                pw.setArgb(x, y,        darken(floorTex[ty][tx], shade));
-                pw.setArgb(x, SH-y-1,   darken(ceilTex [ty][tx], shade * 0.55));
+                rowBuf[x] = darken(floorTex[ty][tx], shade);
 
                 fx += stepX;
                 fy += stepY;
             }
+            pw.setPixels(0, y, SW, 1, javafx.scene.image.PixelFormat.getIntArgbInstance(), rowBuf, 0, SW);
+
+            fx = playerX + rowDist * (dirX - planeX);
+            fy = playerY + rowDist * (dirY - planeY);
+            for (int x = 0; x < SW; x++) {
+                int tx = (int) Math.floor(fx) & (TEX - 1);
+                int ty = (int) Math.floor(fy) & (TEX - 1);
+                rowBuf[x] = darken(ceilTex[ty][tx], shade * 0.55);
+                fx += stepX; fy += stepY;
+            }
+            pw.setPixels(0, SH-y-1, SW, 1, javafx.scene.image.PixelFormat.getIntArgbInstance(), rowBuf, 0, SW);
         }
 
         int mid = darken(ceilTex[0][0], 0.55);
@@ -155,13 +165,14 @@ public class PlayerView {
                 int     texX = (int)(texU * TEX) & (TEX - 1);
                 double  shade = Math.max(0.15, Math.min(1.0, 250.0 / dist));
 
-                for (int sx = xStart; sx < xEnd; sx++) {
-                    for (int sy = Math.max(0, yTop); sy < Math.min(SH, yTop + wallH); sy++) {
-                        int texY = (int)((double)(sy - yTop) / wallH * TEX);
-                        texY = Math.max(0, Math.min(TEX-1, texY));
-                        pw.setArgb(sx, sy, darken(tex[texY][texX], shade));
-                    }
+                int[] column = new int[wallH];
+                for (int row = 0; row < wallH; row++) {
+                    int texY = row * TEX / wallH;
+                    column[row] = darken(tex[texY][texX], shade);
                 }
+                for (int sx = xStart; sx < xEnd; sx++)
+                    for (int sy = Math.max(0,yTop), r=0; sy < Math.min(SH,yTop+wallH); sy++,r++)
+                        pw.setArgb(sx, sy, column[r]);
             }
         }
 

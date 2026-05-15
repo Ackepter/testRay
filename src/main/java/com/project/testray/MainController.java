@@ -1,6 +1,5 @@
 package com.project.testray;
 
-import javafx.animation.AnimationTimer;
 import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
@@ -87,9 +86,6 @@ public class MainController implements Initializable {
 
     private double playerAngle = 0;
 
-    private long lastUpdateTime = 0;
-    int targetFPS = 60;
-    private final long frameIntervalNs = 1_000_000_000L / targetFPS;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -99,28 +95,10 @@ public class MainController implements Initializable {
         workWithPlayerView = new PlayerView(mainCanvas);
 
         mainCanvas.setCursor(Cursor.NONE);
-
-        startGameLoop();
     }
 
-    private void startGameLoop() {
-        AnimationTimer gameLoop = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                if (now - lastUpdateTime >= frameIntervalNs) {
-                    update();
-                    lastUpdateTime = now;
-                }
-            }
-        };
-        gameLoop.start();
-    }
 
-    private void update() {
-        drawAll();
-    }
-
-    private void drawAll(){
+    public void drawAll(){
         ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle);
         workWithPlayerView.drawObjects(rays, playerAngle, player.getCurrentX(), player.getCurrentY());
 
