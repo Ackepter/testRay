@@ -157,7 +157,6 @@ public class MiniMap {
             if (t > 0) {
                 double x = startX + t * dirX;
                 if (x >= 0 && x <= width && t < minT) {
-                    minT = t;
                     resultX = x;
                     resultY = height;
                 }

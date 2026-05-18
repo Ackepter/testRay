@@ -93,11 +93,16 @@ public class PlayerView {
     private final int[] columnBuf = new int[SH * 2];
     private final int[] stripBuf = new int[SH];
     private final int[] ceilBuf = new int[SW];
+    private final int[] clearBuf = new int[SW];
     private static final javafx.scene.image.PixelFormat<java.nio.IntBuffer> FMT =
             javafx.scene.image.PixelFormat.getIntArgbInstance();
 
     public void drawObjects(ArrayList<double[]> rays,
                             double playerAngle, double playerX, double playerY) {
+        for (int y = 0; y < SH; y++) {
+            pw.setPixels(0, y, SW, 1, FMT, clearBuf, 0, SW);
+        }
+
         currentRay = rays;
 
         double dirX   =  Math.cos(playerAngle);
