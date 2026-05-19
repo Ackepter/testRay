@@ -6,9 +6,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 import java.util.ArrayList;
-
 
 public class PlayerView {
     Canvas canvas;
@@ -29,13 +31,14 @@ public class PlayerView {
 
     private final Textures textures = new Textures();
 
+    private final Font hudFont = Font.font("Monospaced", FontWeight.BOLD, 22);
+
     public PlayerView(Canvas canvas){
         this.canvas = canvas;
         gc = canvas.getGraphicsContext2D();
 
         fb = new WritableImage(SW, SH);
         pw = fb.getPixelWriter();
-
 
         wallTex  = new int[][][]{ makeBrick(), makeStone() };
         floorTex = makeFloor();
@@ -100,7 +103,8 @@ public class PlayerView {
 
     public void drawObjects(ArrayList<double[]> rays,
                             double playerAngle, double playerX, double playerY,
-                            ArrayList<Enemy> enemies, long now) {
+                            ArrayList<Enemy> enemies, long now, Player player) {
+
         for (int y = 0; y < SH; y++) {
             pw.setPixels(0, y, SW, 1, FMT, clearBuf, 0, SW);
         }
@@ -202,6 +206,30 @@ public class PlayerView {
         drawSprites(enemies, playerX, playerY, playerAngle, textures, now);
 
         gc.drawImage(fb, 0, 0);
+
+        drawHud(player);
+    }
+
+    private void drawHud(Player player) {
+        int panelW = 320;
+        int panelH = 44;
+        int panelX = 12;
+        int panelY = SH - panelH - 12;
+
+        gc.setFill(Color.rgb(60, 60, 60));
+        gc.fillRect(panelX, panelY, panelW, panelH);
+
+        gc.setStroke(Color.rgb(90, 90, 90));
+        gc.setLineWidth(2);
+        gc.strokeRect(panelX, panelY, panelW, panelH);
+
+        gc.setStroke(Color.rgb(40, 40, 40));
+        gc.setLineWidth(1);
+        gc.strokeRect(panelX + 2, panelY + 2, panelW - 4, panelH - 4);
+
+        gc.setFill(Color.RED);
+        gc.setFont(hudFont);
+        gc.fillText("HP: " + player.getHp(), panelX + 12, panelY + (double)panelH / 2 + 8);
     }
 
     private void drawSprites(ArrayList<Enemy> enemies,
@@ -232,7 +260,7 @@ public class PlayerView {
 
             if (tY <= 0) continue;
 
-            int spriteScreenX = (int)((SW / 2) * (1 + tX / tY));
+            int spriteScreenX = (int)((double)(SW / 2) * (1 + tX / tY));
 
             int spriteH = Math.abs((int)((SH * 45.0) / tY));
             int spriteW = spriteH;
