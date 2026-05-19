@@ -95,6 +95,7 @@ public class Enemy extends SmthThatTakesDamage{
     }
 
     public Enemy(double width, double height, double startX, double startY){
+        super(150);
         this.width = width;
         this.height = height;
 

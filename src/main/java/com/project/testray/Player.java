@@ -57,6 +57,7 @@ public class Player extends SmthThatTakesDamage {
     }
 
     public Player(double width, double height){
+        super(100);
         this.width = width;
         this.height = height;
 
