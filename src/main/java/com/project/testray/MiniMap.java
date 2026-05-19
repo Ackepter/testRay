@@ -19,8 +19,11 @@ public class MiniMap {
 
     private final int[][] map;
 
-    private final ArrayList<double[]> sections = new ArrayList<>();
-    private final ArrayList<double[]> dots = new ArrayList<>();
+    private final ArrayList<double[]> sectionsPlayer = new ArrayList<>();
+    private final ArrayList<double[]> dotsPlayerCollision = new ArrayList<>();
+
+    private final ArrayList<double[]> sectionsEnemy = new ArrayList<>();
+    private final ArrayList<double[]> dotsEnemyCollision = new ArrayList<>();
 
     public MiniMap(Canvas canvas, double width, double height, Player player, int[][] map){
         this.map = map;
@@ -34,33 +37,54 @@ public class MiniMap {
         gc = canvas.getGraphicsContext2D();
     }
 
-    public void drawMap(){
+    private void drawWallsAndRays(){
         gc.clearRect(0, 0, width + 5, height + 5);
         gc.setLineWidth(3.0);
         for(int[] i : map){
             gc.strokeLine(i[0],i[1],i[2],i[3]);
         }
 
-        for(double[] section : sections){
+        for(double[] section : sectionsPlayer){
             gc.strokeLine(section[0], section[1], section[2], section[3]);
         }
-        sections.clear();
+        sectionsPlayer.clear();
 
         gc.setFill(Color.RED);
-        for(double[] dot : dots){
+        for(double[] dot : dotsPlayerCollision){
             gc.fillOval(dot[0], dot[1], dot[2], dot[3]);
         }
         gc.setFill(Color.BLACK);
-        dots.clear();
+        dotsPlayerCollision.clear();
+    }
+
+    private void drawEnemiesAndItsRays(){
+        gc.setFill(Color.GREEN);
+        gc.setStroke(Color.GREEN);
+        for(double[] section : sectionsEnemy){
+            gc.strokeLine(section[0], section[1], section[2], section[3]);
+        }
+        sectionsEnemy.clear();
+
+        for(double[] dot : dotsEnemyCollision){
+            gc.fillOval(dot[0], dot[1], dot[2], dot[3]);
+        }
+        gc.setFill(Color.BLACK);
+        gc.setStroke(Color.BLACK);
+        dotsEnemyCollision.clear();
+    }
+
+    public void drawMap(){
+        drawWallsAndRays();
+        drawEnemiesAndItsRays();
     }
 
     ArrayList<double[]> rays = new ArrayList<>();
 
-    public ArrayList<double[]> drawMiniMap(double playerAngle) {
+    public ArrayList<double[]> drawMiniMap(double playerAngle, ArrayList<Enemy> enemies) {
         rays.clear();
 
-        double currentX = player.getCurrentX();
-        double currentY = player.getCurrentY();
+        double currentPlayerX = player.getCurrentX();
+        double currentPlayerY = player.getCurrentY();
 
         double fovAngleDeg = 90;
         int rayCount = (int)(fovAngleDeg * 3);
@@ -77,34 +101,88 @@ public class MiniMap {
             double dirX = Math.cos(angle);
             double dirY = Math.sin(angle);
 
-            double[] edgePoint = findEdgeIntersection(currentX, currentY, dirX, dirY,
+            double[] edgePointPlayer = findEdgeIntersection(currentPlayerX, currentPlayerY, dirX, dirY,
                     width, height);
 
-            double[] collisionPoint = findClosestWallCollision(currentX, currentY, edgePoint[0], edgePoint[1]);
+            double[] collisionPointPlayer = findClosestWallCollision(currentPlayerX, currentPlayerY, edgePointPlayer[0], edgePointPlayer[1]);
 
-            double rayX = collisionPoint != null ? collisionPoint[0] : edgePoint[0];
-            double rayY = collisionPoint != null ? collisionPoint[1] : edgePoint[1];
+            double rayX = collisionPointPlayer != null ? collisionPointPlayer[0] : edgePointPlayer[0];
+            double rayY = collisionPointPlayer != null ? collisionPointPlayer[1] : edgePointPlayer[1];
 
-            sections.add(new double[]{currentX,currentY,rayX,rayY});
+            sectionsPlayer.add(new double[]{currentPlayerX,currentPlayerY,rayX,rayY});
 
-            if(collisionPoint != null){
-                double distance = Math.hypot(collisionPoint[0] - currentX, collisionPoint[1] - currentY);
+            if(collisionPointPlayer != null){
+                double distance = Math.hypot(collisionPointPlayer[0] - currentPlayerX, collisionPointPlayer[1] - currentPlayerY);
 
-                int wallIdx = (int) collisionPoint[2];
+                int wallIdx = (int) collisionPointPlayer[2];
                 int[] wall = map[wallIdx];
                 double wdx = wall[2] - wall[0];
                 double wdy = wall[3] - wall[1];
                 int textureIndex = map[wallIdx][4];
 
                 double hitCord = Math.abs(wdx) > Math.abs(wdy)
-                        ? collisionPoint[0]
-                        : collisionPoint[1];
+                        ? collisionPointPlayer[0]
+                        : collisionPointPlayer[1];
 
                 double texU = (((hitCord % 64) + 64) % 64) / 64.0;
 
                 rays.add(new double[]{distance, angle, texU, wallIdx, textureIndex});
-                dots.add(new double[]{collisionPoint[0] - 4, collisionPoint[1] - 4, 8, 8});
+                dotsPlayerCollision.add(new double[]{collisionPointPlayer[0] - 4, collisionPointPlayer[1] - 4, 8, 8});
             }
+        }
+
+        for(Enemy enemy : enemies) {
+            if(enemy == null) continue;
+
+            double currentEnemyX = enemy.getCurrentX();
+            double currentEnemyY = enemy.getCurrentY();
+
+            dotsEnemyCollision.add(new double[]{currentEnemyX - 4, currentEnemyY - 4, 8, 8});
+
+            double deltaX = currentPlayerX - currentEnemyX;
+            double deltaY = currentPlayerY - currentEnemyY;
+
+            double betweenAngle = Math.atan2(deltaY, deltaX);
+
+            double dirX = Math.cos(betweenAngle);
+            double dirY = Math.sin(betweenAngle);
+
+            double[] edgePointEnemy = findEdgeIntersection(currentEnemyX, currentEnemyY, dirX, dirY,
+                    width, height);
+
+            double distanceEnemyPlayer = Math.hypot(currentEnemyX - currentPlayerX, currentEnemyY - currentPlayerY);
+            double distanceEnemyWall   = Math.hypot(currentEnemyX - edgePointEnemy[0], currentEnemyY - edgePointEnemy[1]);
+
+            double[] collisionPointEnemy = null;
+            double finalRayX, finalRayY;
+
+            if (distanceEnemyPlayer < distanceEnemyWall) {
+                collisionPointEnemy = findClosestWallCollision(currentEnemyX, currentEnemyY, currentPlayerX, currentPlayerY);
+
+                if (collisionPointEnemy != null) {
+                    finalRayX = collisionPointEnemy[0];
+                    finalRayY = collisionPointEnemy[1];
+                    dotsEnemyCollision.add(new double[]{finalRayX - 4, finalRayY - 4, 8, 8});
+                } else {
+                    finalRayX = currentPlayerX;
+                    finalRayY = currentPlayerY;
+                    enemy.followToPlayer(distanceEnemyPlayer, betweenAngle);
+                }
+            } else {
+                collisionPointEnemy = findClosestWallCollision(currentEnemyX, currentEnemyY, edgePointEnemy[0], edgePointEnemy[1]);
+
+                if (collisionPointEnemy != null) {
+                    finalRayX = collisionPointEnemy[0];
+                    finalRayY = collisionPointEnemy[1];
+                    dotsEnemyCollision.add(new double[]{finalRayX - 4, finalRayY - 4, 8, 8});
+                } else {
+                    finalRayX = edgePointEnemy[0];
+                    finalRayY = edgePointEnemy[1];
+                    enemy.followToPlayer(distanceEnemyPlayer, betweenAngle);
+                }
+            }
+
+            sectionsEnemy.add(new double[]{currentEnemyX, currentEnemyY, finalRayX, finalRayY});
         }
 
         return rays;
@@ -190,7 +268,7 @@ public class MiniMap {
                 double r = rNumerator / denominator;
                 double s = sNumerator / denominator;
 
-                if(s >= 0 && s <= 1 && r >= 0){
+                if(s >= 0 && s <= 1 && r >= 0 && r <= 1){
                     double[] P = new double[2];
                     P[0] = s * (B[0] - A[0]) + A[0];
                     P[1] = s * (B[1] - A[1]) + A[1];

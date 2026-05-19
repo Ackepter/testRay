@@ -98,13 +98,14 @@ public class MainController implements Initializable {
 
         mainCanvas.setCursor(Cursor.NONE);
 
-        Enemy e = new Enemy(miniMapWidth, miniMapHeight, 150, 75);
-        enemies.add(e);
+        enemies.add(
+                new Enemy(miniMapWidth, miniMapHeight, 150, 75)
+        );
     }
 
 
     public void drawAll(long now){
-        ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle);
+        ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle, enemies);
         workWithPlayerView.drawObjects(rays, playerAngle,
                 player.getCurrentX(), player.getCurrentY(),
                 enemies, now);

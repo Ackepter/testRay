@@ -3,7 +3,7 @@ package com.project.testray;
 public class Enemy {
     public enum State { IDLE, WALK, ATTACK, DEATH }
 
-    private State state = State.IDLE;
+    private State state;
     private long lastFrameTime = 0;
     private int currentFrame = 0;
 
@@ -75,6 +75,23 @@ public class Enemy {
         }
     }
 
+    private final double followingBorder = 50.0;
+    private final double step = 7.0;
+    public void followToPlayer(double distance, double angle){
+        if(distance >= followingBorder){
+            state = State.WALK;
+
+            double dirX = Math.cos(angle) * step;
+            double dirY = Math.sin(angle) * step;
+
+            setCurrentX(getCurrentX() + dirX);
+            setCurrentY(getCurrentY() + dirY);
+        }
+        else{
+            state = State.IDLE;
+        }
+    }
+
     public Enemy(double width, double height, double startX, double startY){
         this.width = width;
         this.height = height;
@@ -84,5 +101,7 @@ public class Enemy {
 
         currentX = startX;
         currentY = startY;
+
+        state = State.IDLE;
     }
 }
