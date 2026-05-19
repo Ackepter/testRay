@@ -1,6 +1,6 @@
 package com.project.testray;
 
-public class Player {
+public class Player extends SmthThatTakesDamage {
     private final double maxPlayerWalkSpeed = 100;
     public double getMaxPlayerWalkSpeed(){
         return maxPlayerWalkSpeed;
@@ -66,4 +66,5 @@ public class Player {
         currentX = startX;
         currentY = startY;
     }
+
 }

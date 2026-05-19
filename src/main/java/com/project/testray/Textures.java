@@ -47,7 +47,7 @@ public class Textures {
         return result;
     }
 
-    public Image getEnemySprite(Enemy.State state, int frame) {
+    public Image getEnemySprite(Enemy.EnemyAnimationState state, int frame) {
         return enemySprites[state.ordinal()][frame];
     }
 }

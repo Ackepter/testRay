@@ -1,17 +1,17 @@
 package com.project.testray;
 
-public class Enemy {
-    public enum State { IDLE, WALK, ATTACK, DEATH }
+public class Enemy extends SmthThatTakesDamage{
+    public enum EnemyAnimationState { IDLE, WALK, ATTACK, DEATH }
 
-    private State state;
+    private EnemyAnimationState state;
     private long lastFrameTime = 0;
     private int currentFrame = 0;
 
     private static final int[] FRAME_COUNTS = {1, 4, 2, 5};
     private static final long FRAME_DURATION_NS = 120_000_000L;
 
-    public State getState() { return state; }
-    public void setState(State s) {
+    public EnemyAnimationState getState() { return state; }
+    public void setState(EnemyAnimationState s) {
         if (this.state != s) {
             this.state = s;
             currentFrame = 0;
@@ -24,7 +24,7 @@ public class Enemy {
         if (now - lastFrameTime > FRAME_DURATION_NS) {
             lastFrameTime = now;
             int maxFrames = FRAME_COUNTS[state.ordinal()];
-            if (state == State.DEATH) {
+            if (state == EnemyAnimationState.DEATH) {
                 currentFrame = Math.min(currentFrame + 1, maxFrames - 1);
             } else {
                 currentFrame = (currentFrame + 1) % maxFrames;
@@ -75,20 +75,22 @@ public class Enemy {
         }
     }
 
-    private final double followingBorder = 50.0;
-    private final double step = 7.0;
+    private static final double SEE_BORDER = 300;
+    private static final double FOLLOWING_BORDER = 80.0;
+    private static final double STEP = 0.9;
     public void followToPlayer(double distance, double angle){
-        if(distance >= followingBorder){
-            state = State.WALK;
+        if(distance >= SEE_BORDER) state = EnemyAnimationState.IDLE;
+        else if(distance > FOLLOWING_BORDER){
+            state = EnemyAnimationState.WALK;
 
-            double dirX = Math.cos(angle) * step;
-            double dirY = Math.sin(angle) * step;
+            double dirX = Math.cos(angle) * STEP;
+            double dirY = Math.sin(angle) * STEP;
 
             setCurrentX(getCurrentX() + dirX);
             setCurrentY(getCurrentY() + dirY);
         }
         else{
-            state = State.IDLE;
+            state = EnemyAnimationState.ATTACK;
         }
     }
 
@@ -102,6 +104,6 @@ public class Enemy {
         currentX = startX;
         currentY = startY;
 
-        state = State.IDLE;
+        state = EnemyAnimationState.IDLE;
     }
 }
