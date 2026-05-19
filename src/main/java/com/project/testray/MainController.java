@@ -108,7 +108,7 @@ public class MainController implements Initializable {
         ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle, enemies);
         workWithPlayerView.drawObjects(rays, playerAngle,
                 player.getCurrentX(), player.getCurrentY(),
-                enemies, now);
+                enemies, now, player);
 
         if(DO_DRAW_MAP) workWithMiniMap.drawMap();
     }
@@ -162,5 +162,9 @@ public class MainController implements Initializable {
 
     public void switchMap(){
         DO_DRAW_MAP = !DO_DRAW_MAP;
+    }
+
+    public void keyShoot(double deltaTime){
+
     }
 }

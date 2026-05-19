@@ -50,4 +50,25 @@ public class Textures {
     public Image getEnemySprite(Enemy.EnemyAnimationState state, int frame) {
         return enemySprites[state.ordinal()][frame];
     }
+
+    private final Image[] gunSprite = loadGunSprite();
+
+    private Image[] loadGunSprite() {
+        String[] paths = {"textures/gun/shoot0.png",
+                          "textures/gun/shoot1.png",
+                          "textures/gun/shoot2.png",
+                          "textures/gun/shoot3.png"
+        };
+        Image[] result = new Image[paths.length];
+        for (int i = 0; i < paths.length; i++) {
+            result[i] = new Image(
+                    Objects.requireNonNull(getClass().getResourceAsStream(paths[i]))
+            );
+        }
+        return result;
+    }
+
+    public Image getGunSprite(Enemy.EnemyAnimationState state, int frame) {
+        return enemySprites[state.ordinal()][frame];
+    }
 }

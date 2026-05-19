@@ -17,6 +17,7 @@ public class Application extends javafx.application.Application {
     private boolean isDPressed = false;
 
     private boolean isShiftPressed = false;
+    private boolean isCtrlPressed = false;
 
     private double percent = 0.0;
     private final double acceleration = 0.015;
@@ -28,6 +29,7 @@ public class Application extends javafx.application.Application {
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("RayCast");
         stage.setScene(scene);
+        stage.setFullScreen(true);
         stage.show();
 
 
@@ -60,6 +62,10 @@ public class Application extends javafx.application.Application {
                     controller.keyPressedRotate("A", deltaTime);
                 } else if (isDPressed) {
                     controller.keyPressedRotate("D", deltaTime);
+                }
+
+                if(isCtrlPressed){
+                    controller.keyShoot(deltaTime);
                 }
 
                 controller.drawAll(now);
