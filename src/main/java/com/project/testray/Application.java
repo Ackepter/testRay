@@ -62,7 +62,7 @@ public class Application extends javafx.application.Application {
                     controller.keyPressedRotate("D", deltaTime);
                 }
 
-                controller.drawAll();
+                controller.drawAll(now);
             }
         };
         gameLoop.start();

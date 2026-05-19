@@ -94,11 +94,13 @@ public class PlayerView {
     private final int[] stripBuf = new int[SH];
     private final int[] ceilBuf = new int[SW];
     private final int[] clearBuf = new int[SW];
+    private final double[] zBuffer = new double[SW];
     private static final javafx.scene.image.PixelFormat<java.nio.IntBuffer> FMT =
             javafx.scene.image.PixelFormat.getIntArgbInstance();
 
     public void drawObjects(ArrayList<double[]> rays,
-                            double playerAngle, double playerX, double playerY) {
+                            double playerAngle, double playerX, double playerY,
+                            ArrayList<Enemy> enemies, long now) {
         for (int y = 0; y < SH; y++) {
             pw.setPixels(0, y, SW, 1, FMT, clearBuf, 0, SW);
         }
@@ -181,7 +183,94 @@ public class PlayerView {
             }
         }
 
+        for (int i = 0; i < rays.size(); i++) {
+            double[] ray = rays.get(i);
+            double rawDist = ray[0];
+            double diff = ray[1] - playerAngle;
+            while (diff >  Math.PI) diff -= 2 * Math.PI;
+            while (diff < -Math.PI) diff += 2 * Math.PI;
+            int xPixel = (int)((double) i / rays.size() * SW);
+            zBuffer[xPixel] = rawDist * Math.cos(diff); // исправленная дистанция
+        }
+
+        drawSprites(enemies, playerX, playerY, playerAngle, textures, now);
+
         gc.drawImage(fb, 0, 0);
     }
 
+    private void drawSprites(ArrayList<Enemy> enemies,
+                             double playerX, double playerY, double playerAngle,
+                             Textures textures, long now) {
+
+        double dirX =  Math.cos(playerAngle);
+        double dirY =  Math.sin(playerAngle);
+        // Плоскость камеры (перпендикуляр направлению, для FOV 90° длина = 1.0)
+        double planeX = -Math.sin(playerAngle);
+        double planeY =  Math.cos(playerAngle);
+
+        // Сортируй врагов по дистанции — дальние рисуются первыми
+        enemies.sort((a, b) -> {
+            double da = Math.hypot(a.getCurrentX() - playerX, a.getCurrentY() - playerY);
+            double db = Math.hypot(b.getCurrentX() - playerX, b.getCurrentY() - playerY);
+            return Double.compare(db, da);
+        });
+
+        for (Enemy enemy : enemies) {
+            enemy.updateAnimation(now);
+
+            // Вектор от игрока до врага
+            double spX = enemy.getCurrentX() - playerX;
+            double spY = enemy.getCurrentY() - playerY;
+
+            // Трансформация в пространство камеры
+            double invDet = 1.0 / (planeX * dirY - dirX * planeY);
+            double tX = invDet * ( dirY * spX - dirX * spY);
+            double tY = invDet * (-planeY * spX + planeX * spY);
+
+            // tY — глубина: если <= 0, враг за спиной
+            if (tY <= 0) continue;
+
+            // Центр спрайта на экране
+            int spriteScreenX = (int)((SW / 2) * (1 + tX / tY));
+
+            // Размер спрайта на экране
+            int spriteH = Math.abs((int)(SH / tY));
+            int spriteW = spriteH; // спрайт квадратный
+
+            int drawStartY = Math.max(0, (SH - spriteH) / 2);
+            int drawEndY   = Math.min(SH, (SH + spriteH) / 2);
+            int drawStartX = Math.max(0, spriteScreenX - spriteW / 2);
+            int drawEndX   = Math.min(SW, spriteScreenX + spriteW / 2);
+
+            // Получи нужный кадр
+            Image sprite = textures.getEnemySprite(enemy.getState(), enemy.getCurrentFrame());
+            PixelReader pr = sprite.getPixelReader();
+            int texW = (int) sprite.getWidth();
+            int texH = (int) sprite.getHeight();
+
+            double shade = Math.max(0.15, Math.min(1.0, 250.0 / tY));
+
+            for (int sx = drawStartX; sx < drawEndX; sx++) {
+                // Проверка z-buffer: не рисуй поверх ближних стен
+                double zAtPixel = sx < SW ? zBuffer[sx] : Double.MAX_VALUE;
+                if (tY >= zAtPixel) continue;
+
+                int texX = (int)((sx - (spriteScreenX - spriteW / 2.0))
+                        * texW / spriteW);
+                texX = Math.max(0, Math.min(texW - 1, texX));
+
+                for (int sy = drawStartY; sy < drawEndY; sy++) {
+                    int texY = (int)((sy - (SH - spriteH) / 2.0)
+                            * texH / spriteH);
+                    texY = Math.max(0, Math.min(texH - 1, texY));
+
+                    int argb = pr.getArgb(texX, texY);
+                    // Пропусти прозрачные пиксели (маска по альфа-каналу)
+                    if (((argb >> 24) & 0xFF) < 128) continue;
+
+                    pw.setArgb(sx, sy, darken(argb, shade));
+                }
+            }
+        }
+    }
 }
