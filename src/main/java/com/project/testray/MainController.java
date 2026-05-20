@@ -1,5 +1,11 @@
 package com.project.testray;
 
+import com.project.testray.entyties.Enemy;
+import com.project.testray.entyties.Gun;
+import com.project.testray.entyties.Player;
+import com.project.testray.entyties.SmthThatTakesDamage;
+import com.project.testray.render.MiniMap;
+import com.project.testray.render.PlayerView;
 import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
@@ -10,7 +16,7 @@ import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
     //ОСНОВНЫЕ КОНСТАНТЫ ИГРЫ
-    private boolean DO_DRAW_MAP = false;
+    private static boolean DO_DRAW_MAP = false;
     public static final double PLAYER_RADIUS = 15.0;
 
     public Canvas mainCanvas;
@@ -88,10 +94,16 @@ public class MainController implements Initializable {
 
     private double playerAngle = 0;
 
+    public Gun gun;
+    private long lastShootTime = 0;
+    private static final long SHOOT_COOLDOWN_NS = 480_000_000L;
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         player = new Player(miniMapWidth, miniMapHeight);
+        gun = new Gun();
+        gun.setState(Gun.GunAnimationState.PEACE);
 
         workWithMiniMap = new MiniMap(mainCanvas, miniMapWidth, miniMapHeight, player, map);
         workWithPlayerView = new PlayerView(mainCanvas);
@@ -99,16 +111,23 @@ public class MainController implements Initializable {
         mainCanvas.setCursor(Cursor.NONE);
 
         enemies.add(
-                new Enemy(miniMapWidth, miniMapHeight, 150, 75)
+                new Enemy(miniMapWidth, miniMapHeight, 750, 75, player)
         );
     }
 
 
     public void drawAll(long now){
-        ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle, enemies);
+        gun.updateAnimation(now);
+
+        if (gun.getState() == Gun.GunAnimationState.SHOOT
+                && gun.getCurrentFrame() == 0) {
+            gun.setState(Gun.GunAnimationState.PEACE);
+        }
+
+        ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle, enemies, now);
         workWithPlayerView.drawObjects(rays, playerAngle,
                 player.getCurrentX(), player.getCurrentY(),
-                enemies, now, player);
+                enemies, now, player, gun);
 
         if(DO_DRAW_MAP) workWithMiniMap.drawMap();
     }
@@ -144,7 +163,7 @@ public class MainController implements Initializable {
     public void keyPressedRotate(String key, double deltaTime) {
         if (key == null || key.isEmpty()) return;
 
-        double rotSpeed = Math.PI / 2 * deltaTime;
+        double rotSpeed = Math.PI / 1.7 * deltaTime;
 
         switch (key) {
             case "A" -> playerAngle -= rotSpeed;
@@ -164,7 +183,41 @@ public class MainController implements Initializable {
         DO_DRAW_MAP = !DO_DRAW_MAP;
     }
 
-    public void keyShoot(double deltaTime){
+    public void keyShoot(){
+        long now = System.nanoTime();
+        if (now - lastShootTime < SHOOT_COOLDOWN_NS) return;
 
+        gun.setState(Gun.GunAnimationState.SHOOT);
+        lastShootTime = now;
+
+        double bestDist = 200.0;
+        Enemy target = null;
+
+        for (Enemy e : enemies) {
+            if (e.getCurrentState() == SmthThatTakesDamage.AliveStates.DEAD) continue;
+
+            double dx = e.getCurrentX() - player.getCurrentX();
+            double dy = e.getCurrentY() - player.getCurrentY();
+            double dist = Math.hypot(dx, dy);
+
+            double angleToEnemy = Math.atan2(dy, dx);
+            double diff = angleToEnemy - playerAngle;
+            while (diff >  Math.PI) diff -= 2 * Math.PI;
+            while (diff < -Math.PI) diff += 2 * Math.PI;
+
+            if (Math.abs(diff) > Math.toRadians(10)) continue;
+
+            double wallDist = workWithPlayerView.getZBufferCenter();
+            if (dist > wallDist + 5.0) continue;
+
+            if (dist < bestDist) {
+                bestDist = dist;
+                target = e;
+            }
+        }
+
+        if (target != null) {
+            target.getDamage(gun.getDamage());
+        }
     }
 }

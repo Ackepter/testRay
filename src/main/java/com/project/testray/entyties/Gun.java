@@ -1,4 +1,4 @@
-package com.project.testray;
+package com.project.testray.entyties;
 
 public class Gun {
     private static final double DAMAGE = 50;

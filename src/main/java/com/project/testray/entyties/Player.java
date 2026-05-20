@@ -1,14 +1,14 @@
-package com.project.testray;
+package com.project.testray.entyties;
 
 public class Player extends SmthThatTakesDamage {
-    private final double maxPlayerWalkSpeed = 100;
+    private static final double MAX_PLAYER_WALK_SPEED = 150;
     public double getMaxPlayerWalkSpeed(){
-        return maxPlayerWalkSpeed;
+        return MAX_PLAYER_WALK_SPEED;
     }
 
-    private final double maxPlayerRunSpeed = 150;
+    private static final double MAX_PLAYER_RUN_SPEED = 200;
     public double getMaxPlayerRunSpeed(){
-        return maxPlayerRunSpeed;
+        return MAX_PLAYER_RUN_SPEED;
     }
 
 
@@ -25,16 +25,6 @@ public class Player extends SmthThatTakesDamage {
 
     private final double width;
     private final double height;
-
-    private final double startX;
-    public double getStartX(){
-        return startX;
-    }
-
-    private final double startY;
-    public double getStartY(){
-        return startY;
-    }
 
     private double currentX;
     public double getCurrentX(){
@@ -61,11 +51,8 @@ public class Player extends SmthThatTakesDamage {
         this.width = width;
         this.height = height;
 
-        startY = 75;
-        startX = 75;
-
-        currentX = startX;
-        currentY = startY;
+        currentX = 75;
+        currentY = 75;
     }
 
 }

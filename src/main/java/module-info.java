@@ -6,8 +6,11 @@ module com.project.testray {
     requires com.dlsc.formsfx;
     requires org.kordamp.bootstrapfx.core;
     requires javafx.graphics;
-    requires com.project.testray;
 
     opens com.project.testray to javafx.fxml;
     exports com.project.testray;
+    exports com.project.testray.entyties;
+    opens com.project.testray.entyties to javafx.fxml;
+    exports com.project.testray.render;
+    opens com.project.testray.render to javafx.fxml;
 }

@@ -29,7 +29,7 @@ public class Application extends javafx.application.Application {
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("RayCast");
         stage.setScene(scene);
-        stage.setFullScreen(true);
+        stage.setFullScreen(false);
         stage.show();
 
 
@@ -65,7 +65,7 @@ public class Application extends javafx.application.Application {
                 }
 
                 if(isCtrlPressed){
-                    controller.keyShoot(deltaTime);
+                    controller.keyShoot();
                 }
 
                 controller.drawAll(now);
@@ -86,6 +86,7 @@ public class Application extends javafx.application.Application {
                 }
                 case ESCAPE -> stage.close();
                 case M -> controller.switchMap();
+                case CONTROL -> isCtrlPressed = true;
             }
         });
 
@@ -96,6 +97,7 @@ public class Application extends javafx.application.Application {
                 case A -> { isAPressed = false; percent = 0.6; }
                 case D -> { isDPressed = false; percent = 0.6; }
                 case SHIFT -> { controller.keyWalk(); isShiftPressed = false; }
+                case CONTROL -> isCtrlPressed = false;
             }
         });
     }

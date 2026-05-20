@@ -1,12 +1,12 @@
-package com.project.testray;
+package com.project.testray.entyties;
 
 public abstract class SmthThatTakesDamage {
     public enum AliveStates { ALIVE, DEAD }
 
-    private AliveStates state = AliveStates.ALIVE;
-    public AliveStates getCurrentState(){ return state; }
+    protected AliveStates aliveState = AliveStates.ALIVE;
+    public AliveStates getCurrentState(){ return aliveState; }
 
-    private double maxHp;
+    private final double maxHp;
     public double getMaxHp() { return maxHp; }
     private double hp;
     public double getHp() { return hp; }
@@ -16,14 +16,14 @@ public abstract class SmthThatTakesDamage {
         if(hp - damage >= 0.0) hp = hp - damage;
         else{
             hp = 0;
-            state = AliveStates.DEAD;
+            aliveState = AliveStates.DEAD;
         }
-    };
+    }
     public void getHeal(double heal){
         if(heal < 0) heal *= -1.0;
 
         hp = Math.min(hp + heal, maxHp);
-    };
+    }
 
     public SmthThatTakesDamage(double maxHp) {
         this.maxHp = maxHp;

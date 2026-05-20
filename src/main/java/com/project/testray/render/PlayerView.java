@@ -1,5 +1,9 @@
-package com.project.testray;
+package com.project.testray.render;
 
+import com.project.testray.Textures;
+import com.project.testray.entyties.Enemy;
+import com.project.testray.entyties.Gun;
+import com.project.testray.entyties.Player;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -98,12 +102,16 @@ public class PlayerView {
     private final int[] ceilBuf = new int[SW];
     private final int[] clearBuf = new int[SW];
     private final double[] zBuffer = new double[SW];
+    public double getZBufferCenter() {
+        return zBuffer[SW / 2];
+    }
     private static final javafx.scene.image.PixelFormat<java.nio.IntBuffer> FMT =
             javafx.scene.image.PixelFormat.getIntArgbInstance();
 
     public void drawObjects(ArrayList<double[]> rays,
                             double playerAngle, double playerX, double playerY,
-                            ArrayList<Enemy> enemies, long now, Player player) {
+                            ArrayList<Enemy> enemies, long now, Player player,
+                            Gun gun) {
 
         for (int y = 0; y < SH; y++) {
             pw.setPixels(0, y, SW, 1, FMT, clearBuf, 0, SW);
@@ -203,11 +211,30 @@ public class PlayerView {
             }
         }
 
-        drawSprites(enemies, playerX, playerY, playerAngle, textures, now);
+        drawSprites(enemies, playerX, playerY, playerAngle, textures, now, player);
 
         gc.drawImage(fb, 0, 0);
 
+        drawGun(gun);
         drawHud(player);
+    }
+
+    private void drawGun(Gun gun) {
+        Image sprite = textures.getGunSprite(gun.getCurrentFrame());
+
+        double spriteW = sprite.getWidth();
+        double spriteH = sprite.getHeight();
+
+        double scale = (SH * 0.45) / spriteH;
+        double drawW = spriteW * scale;
+        double drawH = spriteH * scale;
+
+        double drawX = (SW - drawW) / 2.0;
+        double drawY = SH - drawH;
+
+        gc.setImageSmoothing(false);
+        gc.drawImage(sprite, drawX, drawY, drawW, drawH);
+        gc.setImageSmoothing(true);
     }
 
     private void drawHud(Player player) {
@@ -234,7 +261,7 @@ public class PlayerView {
 
     private void drawSprites(ArrayList<Enemy> enemies,
                              double playerX, double playerY, double playerAngle,
-                             Textures textures, long now) {
+                             Textures textures, long now, Player player) {
 
         double dirX =  Math.cos(playerAngle);
         double dirY =  Math.sin(playerAngle);

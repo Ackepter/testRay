@@ -1,5 +1,6 @@
 package com.project.testray;
 
+import com.project.testray.entyties.Enemy;
 import javafx.scene.image.Image;
 
 import java.util.Objects;
@@ -31,9 +32,10 @@ public class Textures {
         String[][] paths = {
                 {"textures/enemy/idle0.png"},
                 {"textures/enemy/walk0.png", "textures/enemy/walk1.png", "textures/enemy/walk2.png", "textures/enemy/walk3.png"},
-                {"textures/enemy/attack0.png", "textures/enemy/attack1.png"},
+                {"textures/enemy/attack0.png", "textures/enemy/attack1.png","textures/enemy/attack0.png","textures/enemy/attack0.png"},
                 {"textures/enemy/death0.png", "textures/enemy/death1.png", "textures/enemy/death2.png",
                         "textures/enemy/death3.png", "textures/enemy/death4.png"},
+                {"textures/enemy/idle0.png","textures/enemy/hurt0.png","textures/enemy/hurt0.png"}
         };
         Image[][] result = new Image[paths.length][];
         for (int i = 0; i < paths.length; i++) {
@@ -54,10 +56,10 @@ public class Textures {
     private final Image[] gunSprite = loadGunSprite();
 
     private Image[] loadGunSprite() {
-        String[] paths = {"textures/gun/shoot0.png",
-                          "textures/gun/shoot1.png",
+        String[] paths = {"textures/gun/shoot3.png",
                           "textures/gun/shoot2.png",
-                          "textures/gun/shoot3.png"
+                          "textures/gun/shoot1.png",
+                          "textures/gun/shoot0.png"
         };
         Image[] result = new Image[paths.length];
         for (int i = 0; i < paths.length; i++) {
@@ -68,7 +70,7 @@ public class Textures {
         return result;
     }
 
-    public Image getGunSprite(Enemy.EnemyAnimationState state, int frame) {
-        return enemySprites[state.ordinal()][frame];
+    public Image getGunSprite(int frame) {
+        return gunSprite[frame % gunSprite.length];
     }
 }

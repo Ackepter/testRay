@@ -1,5 +1,7 @@
-package com.project.testray;
+package com.project.testray.render;
 
+import com.project.testray.entyties.Enemy;
+import com.project.testray.entyties.Player;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -78,9 +80,9 @@ public class MiniMap {
         drawEnemiesAndItsRays();
     }
 
-    ArrayList<double[]> rays = new ArrayList<>();
+    private final ArrayList<double[]> rays = new ArrayList<>();
 
-    public ArrayList<double[]> drawMiniMap(double playerAngle, ArrayList<Enemy> enemies) {
+    public ArrayList<double[]> drawMiniMap(double playerAngle, ArrayList<Enemy> enemies, double now) {
         rays.clear();
 
         double currentPlayerX = player.getCurrentX();
@@ -153,7 +155,7 @@ public class MiniMap {
             double distanceEnemyPlayer = Math.hypot(currentEnemyX - currentPlayerX, currentEnemyY - currentPlayerY);
             double distanceEnemyWall   = Math.hypot(currentEnemyX - edgePointEnemy[0], currentEnemyY - edgePointEnemy[1]);
 
-            double[] collisionPointEnemy = null;
+            double[] collisionPointEnemy;
             double finalRayX, finalRayY;
 
             if (distanceEnemyPlayer < distanceEnemyWall) {
@@ -166,7 +168,7 @@ public class MiniMap {
                 } else {
                     finalRayX = currentPlayerX;
                     finalRayY = currentPlayerY;
-                    enemy.followToPlayer(distanceEnemyPlayer, betweenAngle);
+                    enemy.followToPlayer(distanceEnemyPlayer, betweenAngle, now);
                 }
             } else {
                 collisionPointEnemy = findClosestWallCollision(currentEnemyX, currentEnemyY, edgePointEnemy[0], edgePointEnemy[1]);
@@ -178,7 +180,7 @@ public class MiniMap {
                 } else {
                     finalRayX = edgePointEnemy[0];
                     finalRayY = edgePointEnemy[1];
-                    enemy.followToPlayer(distanceEnemyPlayer, betweenAngle);
+                    enemy.followToPlayer(distanceEnemyPlayer, betweenAngle, now);
                 }
             }
 
