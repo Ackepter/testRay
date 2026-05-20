@@ -118,11 +118,11 @@ public class MiniMap {
 
                 int wallIdx = (int) collisionPointPlayer[2];
                 int[] wall = map[wallIdx];
-                double wdx = wall[2] - wall[0];
-                double wdy = wall[3] - wall[1];
+                double wightX = wall[2] - wall[0];
+                double wightY = wall[3] - wall[1];
                 int textureIndex = map[wallIdx][4];
 
-                double hitCord = Math.abs(wdx) > Math.abs(wdy)
+                double hitCord = Math.abs(wightX) > Math.abs(wightY)
                         ? collisionPointPlayer[0]
                         : collisionPointPlayer[1];
 

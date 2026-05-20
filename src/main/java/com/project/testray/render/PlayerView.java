@@ -122,25 +122,25 @@ public class PlayerView {
 
         double dirX   =  Math.cos(playerAngle);
         double dirY   =  Math.sin(playerAngle);
-        double planeX = -Math.sin(playerAngle);
-        double planeY =  Math.cos(playerAngle);
+        double perpendicularX = -Math.sin(playerAngle);
+        double perpendicularY =  Math.cos(playerAngle);
 
         for (int y = SH/2 + 1; y < SH; y++) {
             double rowDist = (SH * 45.0) / (2.0 * (y - SH / 2.0));
-            double shade   = Math.max(0.25, Math.min(1.0, 120.0 / rowDist));
+            double shadow   = Math.max(0.25, Math.min(1.0, 120.0 / rowDist));
 
-            double stepX = rowDist * 2.0 * planeX / SW;
-            double stepY = rowDist * 2.0 * planeY / SW;
-            double fx = playerX + rowDist * (dirX - planeX);
-            double fy = playerY + rowDist * (dirY - planeY);
+            double stepX = rowDist * 2.0 * perpendicularX / SW;
+            double stepY = rowDist * 2.0 * perpendicularY / SW;
+            double floorX = playerX + rowDist * (dirX - perpendicularX);
+            double floorY = playerY + rowDist * (dirY - perpendicularY);
 
             for (int x = 0; x < SW; x++) {
-                int tx = (int) Math.floor(fx) & (TEX - 1);
-                int ty = (int) Math.floor(fy) & (TEX - 1);
-                rowBuf[x]    = darken(floorTex[ty][tx], shade);
-                ceilBuf[x]   = darken(ceilTex[ty][tx],  shade * 0.55);
-                fx += stepX;
-                fy += stepY;
+                int textureX = (int) Math.floor(floorX) & (TEX - 1);
+                int textureY = (int) Math.floor(floorY) & (TEX - 1);
+                rowBuf[x]    = darken(floorTex[textureY][textureX], shadow);
+                ceilBuf[x]   = darken(ceilTex[textureY][textureX],  shadow * 0.55);
+                floorX += stepX;
+                floorY += stepY;
             }
             pw.setPixels(0, y,       SW, 1, FMT, rowBuf,  0, SW);
             pw.setPixels(0, SH-y-1, SW, 1, FMT, ceilBuf,  0, SW);
@@ -155,34 +155,34 @@ public class PlayerView {
 
             for (int i = 0; i < rays.size(); i++) {
                 double[] ray    = rays.get(i);
-                double rawDist  = ray[0];
+                double rawDistance  = ray[0];
                 double rayAngle = ray[1];
-                double texU     = ray.length > 2 ? ray[2] : 0.0;
+                double texU     = ray[2];
                 int textureIndex = (int)ray[4];
 
-                double diff = rayAngle - playerAngle;
-                while (diff >  Math.PI) diff -= 2*Math.PI;
-                while (diff < -Math.PI) diff += 2*Math.PI;
+                double difference = rayAngle - playerAngle;
+                while (difference >  Math.PI) difference -= 2*Math.PI;
+                while (difference < -Math.PI) difference += 2*Math.PI;
 
-                double dist = Math.max(1.0, rawDist * Math.cos(diff));
-                int wallH   = (int) Math.min(wallHeightConst / dist, SH * 2.0);
+                double distance = Math.max(1.0, rawDistance * Math.cos(difference));
+                int wallHeight   = (int) Math.min(wallHeightConst / distance, SH * 2.0);
 
                 int xStart = (int)((double) i / rays.size() * SW);
                 int xEnd   = Math.min(SW, (int)(xStart + stripW));
-                int yTop   = (SH - wallH) / 2;
+                int yTop   = (SH - wallHeight) / 2;
 
                 int[][] tex  = wallTex[textureIndex % wallTex.length];
                 int     texX = (int)(texU * TEX) & (TEX - 1);
-                double  shade = Math.max(0.15, Math.min(1.0, 250.0 / dist));
+                double  shadow = Math.max(0.15, Math.min(1.0, 250.0 / distance));
 
                 int[] column = columnBuf;
-                for (int row = 0; row < wallH; row++) {
-                    int texY = row * TEX / wallH;
-                    column[row] = darken(tex[texY][texX], shade);
+                for (int row = 0; row < wallHeight; row++) {
+                    int texY = row * TEX / wallHeight;
+                    column[row] = darken(tex[texY][texX], shadow);
                 }
 
                 int clampTop = Math.max(0, yTop);
-                int clampBot = Math.min(SH, yTop + wallH);
+                int clampBot = Math.min(SH, yTop + wallHeight);
                 int drawH = clampBot - clampTop;
 
                 for (int sy = clampTop; sy < clampBot; sy++) {
@@ -280,12 +280,12 @@ public class PlayerView {
         for (Enemy enemy : enemies) {
             enemy.updateAnimation(now);
 
-            double spX = enemy.getCurrentX() - playerX;
-            double spY = enemy.getCurrentY() - playerY;
+            double spriteX = enemy.getCurrentX() - playerX;
+            double spriteY = enemy.getCurrentY() - playerY;
 
             double invDet = 1.0 / (planeX * dirY - dirX * planeY);
-            double tX = invDet * ( dirY * spX - dirX * spY);
-            double tY = invDet * (-planeY * spX + planeX * spY);
+            double tX = invDet * ( dirY * spriteX - dirX * spriteY);
+            double tY = invDet * (-planeY * spriteX + planeX * spriteY);
 
             if (tY <= 0) continue;
 
