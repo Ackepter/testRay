@@ -28,4 +28,9 @@ public abstract class SmthThatTakesDamage {
         this.maxHp = maxHp;
         this.hp = maxHp;
     }
+
+    public void revive() {
+        aliveState = AliveStates.ALIVE;
+        hp = maxHp;
+    }
 }

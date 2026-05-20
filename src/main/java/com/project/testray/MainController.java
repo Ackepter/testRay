@@ -19,7 +19,7 @@ import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
     //ОСНОВНЫЕ КОНСТАНТЫ ИГРЫ
-    public enum GAME_STATES{GAME, WIN, LOSE};
+    public enum GAME_STATES{GAME, WIN, LOSE}
     private GAME_STATES gameState = GAME_STATES.GAME;
     public GAME_STATES getGameState(){return gameState;}
 
@@ -161,7 +161,7 @@ public class MainController implements Initializable {
             if(DO_DRAW_MAP) workWithMiniMap.drawMap();
 
 
-            if(1 == player.getKillsAmount())
+            if(Enemy.getEnemyAmount() == player.getKillsAmount())
                 gameState = GAME_STATES.WIN;
         }
         else if(gameState == GAME_STATES.LOSE){
@@ -274,10 +274,11 @@ public class MainController implements Initializable {
         player.setCurrentX(Player.START_X);
         player.setCurrentY(Player.START_Y);
         player.setKillsAmount(0);
+        player.revive();
 
         for(Enemy enemy : enemies){
             enemy.setState(Enemy.EnemyAnimationState.IDLE);
-            enemy.getHeal(Double.MAX_VALUE);
+            enemy.revive();
         }
     }
 }

@@ -46,16 +46,6 @@ public class Enemy extends SmthThatTakesDamage {
         }
     }
 
-    private static final double MAX_ENEMY_WALK_SPEED = 100;
-    public double getMaxEnemyWalkSpeed(){
-        return MAX_ENEMY_WALK_SPEED;
-    }
-
-    private static final double MAX_ENEMY_RUN_SPEED = 150;
-    public double getMaxEnemyRunSpeed(){
-        return MAX_ENEMY_RUN_SPEED;
-    }
-
     private final double width;
     private final double height;
 

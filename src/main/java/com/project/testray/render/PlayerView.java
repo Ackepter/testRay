@@ -211,7 +211,7 @@ public class PlayerView {
             }
         }
 
-        drawSprites(enemies, playerX, playerY, playerAngle, textures, now, player);
+        drawSprites(enemies, playerX, playerY, playerAngle, textures, now);
 
         gc.drawImage(fb, 0, 0);
 
@@ -263,7 +263,7 @@ public class PlayerView {
 
     private void drawSprites(ArrayList<Enemy> enemies,
                              double playerX, double playerY, double playerAngle,
-                             Textures textures, long now, Player player) {
+                             Textures textures, long now) {
 
         double dirX =  Math.cos(playerAngle);
         double dirY =  Math.sin(playerAngle);
