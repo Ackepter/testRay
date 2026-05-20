@@ -7,7 +7,6 @@ public abstract class SmthThatTakesDamage {
     public AliveStates getCurrentState(){ return aliveState; }
 
     private final double maxHp;
-    public double getMaxHp() { return maxHp; }
     private double hp;
     public double getHp() { return hp; }
     public void getDamage(double damage){

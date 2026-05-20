@@ -238,9 +238,9 @@ public class PlayerView {
     }
 
     private void drawHud(Player player) {
-        int panelW = 320;
+        int panelW = 370;
         int panelH = 44;
-        int panelX = 12;
+        int panelX = 44;
         int panelY = SH - panelH - 12;
 
         gc.setFill(Color.rgb(60, 60, 60));
@@ -256,7 +256,9 @@ public class PlayerView {
 
         gc.setFill(Color.RED);
         gc.setFont(hudFont);
-        gc.fillText("HP: " + player.getHp(), panelX + 12, panelY + (double)panelH / 2 + 8);
+
+        int enemiesAmount = Enemy.getEnemyAmount() - player.getKillsAmount();
+        gc.fillText("HP: " + (int)player.getHp() + " Осталось врагов: " + enemiesAmount, panelX + 12, panelY + (double)panelH / 2 + 8);
     }
 
     private void drawSprites(ArrayList<Enemy> enemies,
@@ -297,7 +299,7 @@ public class PlayerView {
             int drawStartX = Math.max(0, spriteScreenX - spriteW / 2);
             int drawEndX   = Math.min(SW, spriteScreenX + spriteW / 2);
 
-            Image sprite = textures.getEnemySprite(enemy.getState(), enemy.getCurrentFrame());
+            Image sprite = textures.getEnemySprite(enemy.getAnimationState(), enemy.getCurrentFrame());
             PixelReader pr = sprite.getPixelReader();
             int texW = (int) sprite.getWidth();
             int texH = (int) sprite.getHeight();

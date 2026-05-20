@@ -1,6 +1,9 @@
 package com.project.testray.entyties;
 
 public class Enemy extends SmthThatTakesDamage {
+    private static int enemyAmount = 0;
+    public static int getEnemyAmount() {return enemyAmount; }
+
     private final Player player;
 
     public enum EnemyAnimationState { IDLE, WALK, ATTACK, DEATH, HURT }
@@ -12,7 +15,7 @@ public class Enemy extends SmthThatTakesDamage {
     private static final int[] FRAME_COUNTS = {1, 4, 4, 5, 3};
     private static final long FRAME_DURATION_NS = 120_000_000L;
 
-    public EnemyAnimationState getState() { return animationState; }
+    public EnemyAnimationState getAnimationState() { return animationState; }
     public void setState(EnemyAnimationState s) {
         if (this.animationState != s) {
             this.animationState = s;
@@ -120,6 +123,8 @@ public class Enemy extends SmthThatTakesDamage {
         animationState = EnemyAnimationState.IDLE;
 
         this.player = player;
+
+        enemyAmount++;
     }
 
     @Override

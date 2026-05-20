@@ -1,6 +1,16 @@
 package com.project.testray.entyties;
 
 public class Player extends SmthThatTakesDamage {
+    public static final double START_X = 75;
+    public static final double START_Y = 75;
+
+
+    private int killsAmount = 0;
+    public void setKillsAmount(int newKills){
+        if(newKills != killsAmount) killsAmount = newKills;
+    }
+    public int getKillsAmount() {return killsAmount; }
+
     private static final double MAX_PLAYER_WALK_SPEED = 150;
     public double getMaxPlayerWalkSpeed(){
         return MAX_PLAYER_WALK_SPEED;
@@ -51,8 +61,8 @@ public class Player extends SmthThatTakesDamage {
         this.width = width;
         this.height = height;
 
-        currentX = 75;
-        currentY = 75;
+        currentX = START_X;
+        currentY = START_Y;
     }
 
 }

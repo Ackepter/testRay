@@ -19,6 +19,8 @@ public class Application extends javafx.application.Application {
     private boolean isShiftPressed = false;
     private boolean isCtrlPressed = false;
 
+    private boolean isRPressed = false;
+
     private double percent = 0.0;
     private final double acceleration = 0.015;
 
@@ -40,40 +42,49 @@ public class Application extends javafx.application.Application {
 
             @Override
             public void handle(long now) {
-                if (lastTime < 0) {
+                if(controller.getGameState() == MainController.GAME_STATES.WIN
+                || controller.getGameState() == MainController.GAME_STATES.LOSE){
+                    if (isRPressed) {
+                        controller.keyRestart();
+                    }
+                }
+                else{
+                    if (lastTime < 0) {
+                        lastTime = now;
+                        return;
+                    }
+
+                    double deltaTime = (now - lastTime) / 1_000_000_000.0;
                     lastTime = now;
-                    return;
+
+                    deltaTime = Math.min(deltaTime, 0.1);
+
+                    percent = Math.min(percent + acceleration, 1.0);
+
+                    if (isWPressed) {
+                        controller.keyPressedControl("W", percent, deltaTime);
+                    } else if (isSPressed) {
+                        controller.keyPressedControl("S", percent, deltaTime);
+                    }
+
+                    if (isAPressed) {
+                        controller.keyPressedRotate("A", deltaTime);
+                    } else if (isDPressed) {
+                        controller.keyPressedRotate("D", deltaTime);
+                    }
+
+                    if(isCtrlPressed){
+                        controller.keyShoot();
+                    }
                 }
-
-                double deltaTime = (now - lastTime) / 1_000_000_000.0;
-                lastTime = now;
-
-                deltaTime = Math.min(deltaTime, 0.1);
-
-                percent = Math.min(percent + acceleration, 1.0);
-
-                if (isWPressed) {
-                    controller.keyPressedControl("W", percent, deltaTime);
-                } else if (isSPressed) {
-                    controller.keyPressedControl("S", percent, deltaTime);
-                }
-
-                if (isAPressed) {
-                    controller.keyPressedRotate("A", deltaTime);
-                } else if (isDPressed) {
-                    controller.keyPressedRotate("D", deltaTime);
-                }
-
-                if(isCtrlPressed){
-                    controller.keyShoot();
-                }
-
                 controller.drawAll(now);
             }
         };
         gameLoop.start();
 
         scene.setOnKeyPressed(event -> {
+            controller.DO_DRAW_GUIDE = false;
+
             switch (event.getCode()) {
                 case W -> isWPressed = true;
                 case S -> isSPressed = true;
@@ -87,6 +98,7 @@ public class Application extends javafx.application.Application {
                 case ESCAPE -> stage.close();
                 case M -> controller.switchMap();
                 case CONTROL -> isCtrlPressed = true;
+                case R -> isRPressed = true;
             }
         });
 
@@ -98,6 +110,7 @@ public class Application extends javafx.application.Application {
                 case D -> { isDPressed = false; percent = 0.6; }
                 case SHIFT -> { controller.keyWalk(); isShiftPressed = false; }
                 case CONTROL -> isCtrlPressed = false;
+                case R -> isRPressed = false;
             }
         });
     }

@@ -9,13 +9,20 @@ import com.project.testray.render.PlayerView;
 import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.image.Image;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
     //ОСНОВНЫЕ КОНСТАНТЫ ИГРЫ
+    public enum GAME_STATES{GAME, WIN, LOSE};
+    private GAME_STATES gameState = GAME_STATES.GAME;
+    public GAME_STATES getGameState(){return gameState;}
+
     private static boolean DO_DRAW_MAP = false;
     public static final double PLAYER_RADIUS = 15.0;
 
@@ -74,10 +81,10 @@ public class MainController implements Initializable {
             {425, 175, 425, 125,   1},
 
             //колона в проходе справа
-            {650, 400, 650, 300,   2},
-            {650, 400, 600, 400,   2},
-            {600, 400, 600, 300,   2},
-            {600, 300, 650, 300,   2},
+            {637, 375, 637, 325,   2},
+            {637, 375, 612, 375,   2},
+            {612, 375, 612, 325,   2},
+            {612, 325, 637, 325,   2},
 
             //последняя комната
             {100, 600, 100, 550,   1},
@@ -98,6 +105,11 @@ public class MainController implements Initializable {
     private long lastShootTime = 0;
     private static final long SHOOT_COOLDOWN_NS = 480_000_000L;
 
+    private final Image guideImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("textures/guide.png")));
+    public boolean DO_DRAW_GUIDE = true;
+
+    private final Image loseImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("textures/gameOver.png")));
+    private final Image winImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("textures/win.png")));
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -110,26 +122,60 @@ public class MainController implements Initializable {
 
         mainCanvas.setCursor(Cursor.NONE);
 
-        enemies.add(
-                new Enemy(miniMapWidth, miniMapHeight, 750, 75, player)
-        );
+        enemies.addAll(List.of(
+                new Enemy(miniMapWidth, miniMapHeight, 750,  75, player),
+                new Enemy(miniMapWidth, miniMapHeight, 675, 375, player),
+                new Enemy(miniMapWidth, miniMapHeight, 475, 475, player),
+                new Enemy(miniMapWidth, miniMapHeight, 475, 675, player),
+                new Enemy(miniMapWidth, miniMapHeight, 100, 350, player)
+        ));
     }
 
 
     public void drawAll(long now){
-        gun.updateAnimation(now);
+        if (gameState == GAME_STATES.GAME) {
+            if(player.getHp() == 0) gameState = GAME_STATES.LOSE;
 
-        if (gun.getState() == Gun.GunAnimationState.SHOOT
-                && gun.getCurrentFrame() == 0) {
-            gun.setState(Gun.GunAnimationState.PEACE);
+            int kills = 0;
+            for(Enemy enemy : enemies){
+                if(enemy.getAnimationState() == Enemy.EnemyAnimationState.DEATH) kills++;
+            }
+            player.setKillsAmount(kills);
+
+            gun.updateAnimation(now);
+
+            if (gun.getState() == Gun.GunAnimationState.SHOOT
+                    && gun.getCurrentFrame() == 0) {
+                gun.setState(Gun.GunAnimationState.PEACE);
+            }
+
+            ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle, enemies, now);
+            workWithPlayerView.drawObjects(rays, playerAngle,
+                    player.getCurrentX(), player.getCurrentY(),
+                    enemies, now, player, gun);
+
+            if(DO_DRAW_GUIDE) mainCanvas.getGraphicsContext2D().drawImage(
+                    guideImage,
+                    800 - guideImage.getWidth() / 2,
+                    450 - guideImage.getHeight() / 2);
+            if(DO_DRAW_MAP) workWithMiniMap.drawMap();
+
+
+            if(1 == player.getKillsAmount())
+                gameState = GAME_STATES.WIN;
         }
-
-        ArrayList<double[]> rays = workWithMiniMap.drawMiniMap(playerAngle, enemies, now);
-        workWithPlayerView.drawObjects(rays, playerAngle,
-                player.getCurrentX(), player.getCurrentY(),
-                enemies, now, player, gun);
-
-        if(DO_DRAW_MAP) workWithMiniMap.drawMap();
+        else if(gameState == GAME_STATES.LOSE){
+            mainCanvas.getGraphicsContext2D().drawImage(
+                    loseImage,
+                    800 - guideImage.getWidth() / 2,
+                    450 - guideImage.getHeight() / 2);
+        }
+        else if(gameState == GAME_STATES.WIN){
+            mainCanvas.getGraphicsContext2D().drawImage(
+                    winImage,
+                    800 - guideImage.getWidth() / 2,
+                    450 - guideImage.getHeight() / 2);
+        }
     }
 
     public void keyPressedControl(String key, double percent, double deltaTime) {
@@ -218,6 +264,20 @@ public class MainController implements Initializable {
 
         if (target != null) {
             target.getDamage(gun.getDamage());
+        }
+    }
+
+    public void keyRestart(){
+        gameState = GAME_STATES.GAME;
+
+        player.getHeal(Double.MAX_VALUE);
+        player.setCurrentX(Player.START_X);
+        player.setCurrentY(Player.START_Y);
+        player.setKillsAmount(0);
+
+        for(Enemy enemy : enemies){
+            enemy.setState(Enemy.EnemyAnimationState.IDLE);
+            enemy.getHeal(Double.MAX_VALUE);
         }
     }
 }
